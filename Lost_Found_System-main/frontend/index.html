@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lost & Found - Strathmore University</title>
+    <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="index.html">Lost & Found</a>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="active">Browse Items</a></li>
+                <li id="dashboardLink" style="display:none;"><a href="dashboard.html">Dashboard</a></li>
+                <li id="authLinks">
+                    <a href="login.html" class="btn btn-outline">Login</a>
+                    <a href="register.html" class="btn btn-primary">Register</a>
+                </li>
+                <li id="userLinks" style="display:none;">
+                    <span class="user-greeting" id="userGreeting"></span>
+                    <button class="btn btn-outline" id="logoutBtn">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        
+        <section class="hero">
+            <h1>Lost Something? Found Something?</h1>
+            <p>Check our platform to see if your lost item has been found and submitted by security staff.</p>
+        </section>
+
+        <section class="filters">
+            <div class="filter-group">
+                <label for="categoryFilter">Category</label>
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Documents">Documents</option>
+                    <option value="Accessories">Accessories</option>
+                    <option value="Books">Books</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="statusFilter">Status</label>
+                <select id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="unclaimed">Unclaimed</option>
+                    <option value="under_review">Under Review</option>
+                    <option value="claimed">Claimed</option>
+                    <option value="closed">Closed</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+        </section>
+
+        <section class="items-grid" id="itemsGrid">
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p>Loading items...</p>
+            </div>
+            <div id="itemsContainer"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Strathmore University - Lost & Found Platform</p>
+    </footer>
+</body>
+</html>

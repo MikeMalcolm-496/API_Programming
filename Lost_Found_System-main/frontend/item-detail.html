@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Item Details - Lost & Found</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="index.html">Lost & Found</a>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Browse Items</a></li>
+                <li id="dashboardLink" style="display:none;"><a href="dashboard.html">Dashboard</a></li>
+                <li id="authLinks">
+                    <a href="login.html" class="btn btn-outline">Login</a>
+                    <a href="register.html" class="btn btn-primary">Register</a>
+                </li>
+                <li id="userLinks" style="display:none;">
+                    <span class="user-greeting" id="userGreeting"></span>
+                    <button class="btn btn-outline" id="logoutBtn">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="item-detail-container" id="itemDetail">
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p>Loading item details...</p>
+            </div>
+            <div id="itemContent" style="display:none;">
+                <div class="item-detail-grid">
+                    <div class="item-images" id="itemImages">
+                
+                    </div>
+                    <div class="item-info">
+                        <h1 id="itemTitle"></h1>
+                        <span class="item-status" id="itemStatus"></span>
+                        <div class="item-meta">
+                            <p><strong>Category:</strong> <span id="itemCategory"></span></p>
+                            <p><strong>Location Found:</strong> <span id="itemLocation"></span></p>
+                            <p><strong>Date Found:</strong> <span id="itemDate"></span></p>
+                            <p><strong>Posted By:</strong> <span id="itemPostedBy"></span></p>
+                        </div>
+                        <div class="item-description">
+                            <h3>Description</h3>
+                            <p id="itemDescription"></p>
+                        </div>
+                        
+                        <div id="inquirySection" class="inquiry-section">
+                            <h3>Claim This Item</h3>
+                            <p>If this is your item, submit a claim inquiry. Security staff will review your claim and contact you.</p>
+                            <form id="claimForm">
+                                <div class="form-group">
+                                    <label for="claimDescription">Describe why this is your item</label>
+                                    <textarea id="claimDescription" rows="4" placeholder="Please provide details to verify ownership..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Submit Claim</button>
+                            </form>
+                            <div id="claimMessage" class="info-message" style="display:none;"></div>
+                        </div>
+                        
+                        <div id="messagesSection" class="messages-section" style="display:none;">
+                            <h3>Messages</h3>
+                            <div id="messagesContainer" class="messages-container">
+
+                            </div>
+                            <form id="messageForm" class="message-form">
+                                <div class="form-group">
+                                    <input type="text" id="messageInput" placeholder="Type your message..." required />
+                                    <button type="submit" class="btn btn-primary">Send</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Strathmore University - Lost & Found Platform</p>
+    </footer>
+</body>
+</html>

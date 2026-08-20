@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Lost & Found</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="index.html">Lost & Found</a>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Browse Items</a></li>
+                <li><a href="dashboard.html" class="active">Dashboard</a></li>
+                <li id="authLinks">
+                    <a href="login.html" class="btn btn-outline">Login</a>
+                    <a href="register.html" class="btn btn-primary">Register</a>
+                </li>
+                <li id="userLinks" style="display:none;">
+                    <span class="user-greeting" id="userGreeting"></span>
+                    <button class="btn btn-outline" id="logoutBtn">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="dashboard-header">
+            <h1>Dashboard</h1>
+            <p id="dashboardRoleInfo">Security Staff Dashboard</p>
+        </div>
+
+        <div id="securityDashboard" style="display:none;">
+            
+            <section class="dashboard-section">
+                <h2>Post New Found Item</h2>
+                <form id="postItemForm" class="form-card" enctype="multipart/form-data">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemTitle">Item Title</label>
+                            <input type="text" id="itemTitle" placeholder="e.g., Black Laptop Bag" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="itemCategory">Category</label>
+                            <select id="itemCategory" required>
+                                <option value="">Select Category</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Clothing">Clothing</option>
+                                <option value="Documents">Documents</option>
+                                <option value="Accessories">Accessories</option>
+                                <option value="Books">Books</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemLocation">Location Found</label>
+                            <input type="text" id="itemLocation" placeholder="e.g., Library Hall" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="itemDate">Date Found</label>
+                            <input type="date" id="itemDate" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemDescription">Description</label>
+                        <textarea id="itemDescription" rows="3" placeholder="Detailed description of the item..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemImages">Upload Images</label>
+                        <input type="file" id="itemImages" accept="image/*" multiple />
+                        <small class="form-hint">You can select multiple images</small>
+                    </div>
+                    <div id="postItemError" class="error-message" style="display:none;"></div>
+                    <div id="postItemSuccess" class="success-message" style="display:none;"></div>
+                    <button type="submit" class="btn btn-primary">Post Item</button>
+                </form>
+            </section>
+
+            <section class="dashboard-section">
+                <h2>Inquiries to Review</h2>
+                <div id="inquiriesContainer">
+                    <p class="text-muted">No inquiries to review.</p>
+                </div>
+            </section>
+
+            <section class="dashboard-section">
+                <h2>My Posted Items</h2>
+                <div id="myItemsContainer">
+                    <p class="text-muted">You haven't posted any items yet.</p>
+                </div>
+            </section>
+        </div>
+
+        <div id="studentDashboard" style="display:none;">
+            <section class="dashboard-section">
+                <h2>My Claims</h2>
+                <div id="myClaimsContainer">
+                    <p class="text-muted">You haven't made any claims yet.</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Strathmore University - Lost & Found Platform</p>
+    </footer>
+</body>
+</html> 
