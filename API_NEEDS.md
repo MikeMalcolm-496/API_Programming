@@ -1,16 +1,16 @@
 Maina Michael -174483
 Mike Malcolm - 220964
-Alma
-Judy Chekuki
+Alma Namarome - 189804
+Judy Chekuki - 221902
 
-3.1 "The cafeteria API must expose a user order history endpoint (/api/v1/users/{userId}/orders) that returns a paginated list of all past orders with timestamps, location IDs, and total amounts, allowing our system to verify that a claimant was present at a specific location at a specific time."
+3.1 "Team 11 needs to look up a user's order history by user ID from Team 10, in order to verify whether a claimant was actually present at a specific location at a specific time when an item was reported lost."
 
-3.2 "The API must provide a detailed order receipt endpoint (/api/v1/orders/{orderId}/receipt) that returns the full itemized list of food items purchased, payment method, and transaction reference number, which our system can use as proof of purchase for ownership verification."
+3.2 "Team 11 needs to retrieve a full itemized receipt for a specific order (items purchased, payment method, transaction reference) from Team 10, in order to use it as proof of purchase when verifying ownership of a claimed item."
 
-3.3 "The cafeteria API must include a time-range query parameter (?from=YYYY-MM-DDTHH:MM:SS&to=YYYY-MM-DDTHH:MM:SS) for the order history endpoint, enabling our system to filter orders within the exact timeframe an item was reported lost."
+3.3 "Team 11 needs to filter a user's order history by a time range (from/to timestamps) from Team 10, in order to narrow results down to the exact window during which an item was reported lost."
 
-3.4 "The API must expose a transaction verification endpoint (/api/v1/orders/verify) that accepts an order ID and returns a boolean indicating whether the order is valid and belongs to the authenticated user, allowing our system to instantly verify claims without fetching full order histories."
+3.4 "Team 11 needs to verify whether a specific order ID is valid and belongs to the authenticated user from Team 10, in order to instantly confirm a claim without pulling and scanning a user's entire order history."
 
-3.5 "The cafeteria API must provide a location-based order query endpoint (/api/v1/locations/{locationId}/orders?from=...&to=...) that returns all orders placed in a specific zone during a time window, allowing our system to generate a list of potential owners for unattributed lost items."
+3.5 "Team 11 needs to query all orders placed at a specific location within a time window from Team 10, in order to generate a shortlist of potential owners for an unattributed lost item."
 
-3.6 "The API must include a 'first-time visitor' flag or order count field in the user profile, so our system can assess whether a user is a regular at a location (higher credibility) or a one-time visitor (lower credibility) when verifying lost item claims."
+3.6 "Team 11 needs read-only access to a user's visit frequency (first-time vs. repeat visitor) from Team 10, in order to weigh the credibility of a lost-item claim based on how familiar the claimant is with that location
