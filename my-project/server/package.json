@@ -14,17 +14,10 @@
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-<<<<<<< HEAD:Lost_Found_System-main/Server/package.json
+    "express": "^5.2.1",
     "pg": "^8.23.0"
   },
   "devDependencies": {
-    "express": "^5.2.1",
-=======
-    "express": "^5.2.1",
-    "mysql2": "^3.24.4"
-  },
-  "devDependencies": {
->>>>>>> 89b684053e3d7e0aa329edfccc798868a65a2e1b:my-project/server/package.json
     "nodemon": "^3.1.14"
   }
 }
