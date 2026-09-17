@@ -17,9 +17,7 @@ app.get('/', (req, res) => {
 });
 
 const foundItemsRoutes = require('./routes/foundItems');
-const studentsRoutes = require('./routes/students');
 app.use('/', foundItemsRoutes);
-app.use('/api/students', studentsRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
