@@ -21,12 +21,21 @@ const selectColumns = `
   category
 `;
 
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function sendDatabaseError(res, error) {
   console.error(error);
   res.status(500).json({ error: 'internal_error', message: 'Failed to retrieve found items.' });
 }
 
 router.get('/found-items/:itemId', async (req, res) => {
+  if (!uuidPattern.test(req.params.itemId)) {
+    return res.status(400).json({
+      error: 'invalid_request',
+      message: 'itemId must be a valid UUID.',
+    });
+  }
+
   try {
     const result = await db.query(
       `SELECT ${selectColumns} FROM found_items WHERE id = $1`,
