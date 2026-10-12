@@ -1,0 +1,328 @@
+openapi: 3.0.0
+info:
+  title: Lost & Found Service API
+  version: 1.0.0
+  description: >
+    Endpoints exposed by Team 10 (Lost & Found) for consumption by Team 11
+    (Inventory) to look up, search, and reconcile found items against
+    missing inventory records.
+
+paths:
+  /found-items/{itemId}:
+    get:
+      summary: Retrieve a single found-item record by its ID.
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          description: Unique identifier of the found item.
+          schema:
+            type: string
+            format: uuid
+            example: "7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11"
+      responses:
+        '200':
+          description: Found item located successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FoundItem'
+              example:
+                itemId: "7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11"
+                status: "unclaimed"
+                location: "Library, 2nd Floor Front Desk"
+                dateFound: "2026-08-13T10:00:00Z"
+                description: "Black umbrella with wooden handle"
+                category: "personal-items"
+        '404':
+          description: No found item exists with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "not_found"
+                message: "No found item exists with ID 7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11."
+
+  /found-items:
+    get:
+      summary: >
+        Browse, search, or sync the found-items table. Read-only —
+        no create, update, or delete operations are exposed on this path.
+      parameters:
+        - name: category
+          in: query
+          required: false
+          description: Filter found items by category. Used with `keyword` when an exact ID match is uncertain.
+          schema:
+            type: string
+            enum: [electronics, personal-items, documents, clothing, keys, other]
+            example: "electronics"
+        - name: keyword
+          in: query
+          required: false
+          description: Free-text keyword to match against item description. Used with `category` when an exact ID match is uncertain.
+          schema:
+            type: string
+            example: "umbrella"
+        - name: updatedSince
+          in: query
+          required: false
+          description: >
+            Return only found items whose status changed after this timestamp.
+            Used for incremental synchronization instead of re-checking the
+            entire table on every sync.
+          schema:
+            type: string
+            format: date-time
+            example: "2026-08-12T00:00:00Z"
+      responses:
+        '200':
+          description: >
+            List of found items matching the supplied filters. If no
+            filters are supplied, returns the full found-items list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FoundItem'
+              example:
+                - itemId: "7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11"
+                  status: "unclaimed"
+                  location: "Library, 2nd Floor Front Desk"
+                  dateFound: "2026-08-13T10:00:00Z"
+                  description: "Black umbrella with wooden handle"
+                  category: "personal-items"
+                - itemId: "a1b2c3d4-5678-4e9f-9012-3456789abcde"
+                  status: "claimed"
+                  location: "Cafeteria Lost & Found Box"
+                  dateFound: "2026-08-11T14:30:00Z"
+                  description: "Silver wired earphones"
+                  category: "electronics"
+        '400':
+          description: Invalid query parameter (e.g. unrecognized category or malformed timestamp).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "invalid_request"
+                message: "updatedSince must be a valid ISO 8601 date-time string."
+
+  /found-items/batch-lookup:
+    post:
+      summary: >
+        Check a batch of missing-inventory IDs against found items in a
+        single request, for daily reconciliation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchLookupRequest'
+            example:
+              inventoryItemIds:
+                - "inv-5501"
+                - "inv-5502"
+                - "inv-5503"
+      responses:
+        '200':
+          description: Match results for each submitted inventory item ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchLookupResponse'
+              example:
+                results:
+                  - inventoryItemId: "inv-5501"
+                    matched: true
+                    foundItem:
+                      itemId: "7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11"
+                      status: "unclaimed"
+                      location: "Library, 2nd Floor Front Desk"
+                      dateFound: "2026-08-13T10:00:00Z"
+                      description: "Black umbrella with wooden handle"
+                      category: "personal-items"
+                  - inventoryItemId: "inv-5502"
+                    matched: false
+                    foundItem: null
+        '400':
+          description: Request body missing or contains an empty/invalid inventoryItemIds array.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "invalid_request"
+                message: "inventoryItemIds must be a non-empty array of strings."
+
+  /flagged-checks:
+    post:
+      summary: >
+        Record that a specific found item was checked against a missing
+        inventory item, for audit-trail purposes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlaggedCheckRequest'
+            example:
+              foundItemId: "7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11"
+              inventoryItemId: "inv-5501"
+              checkedBy: "team11-sync-service"
+              outcome: "no_match"
+      responses:
+        '201':
+          description: Flagged check recorded successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlaggedCheck'
+              example:
+                checkId: "f9e8d7c6-1234-4abc-9def-0123456789ab"
+                foundItemId: "7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11"
+                inventoryItemId: "inv-5501"
+                checkedBy: "team11-sync-service"
+                outcome: "no_match"
+                checkedAt: "2026-08-13T10:05:00Z"
+        '400':
+          description: Request body missing required fields or references an outcome not in the allowed set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "invalid_request"
+                message: "outcome must be one of: match, no_match, needs_review."
+        '404':
+          description: The referenced foundItemId does not exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "not_found"
+                message: "No found item exists with ID 7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11."
+
+components:
+  schemas:
+    FoundItem:
+      type: object
+      required: [itemId, status, location, dateFound, description, category]
+      properties:
+        itemId:
+          type: string
+          format: uuid
+          example: "7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11"
+        status:
+          type: string
+          enum: [unclaimed, claimed, pending-verification]
+          example: "unclaimed"
+        location:
+          type: string
+          description: Where the item was logged as found.
+          example: "Library, 2nd Floor Front Desk"
+        dateFound:
+          type: string
+          format: date-time
+          example: "2026-08-13T10:00:00Z"
+        description:
+          type: string
+          example: "Black umbrella with wooden handle"
+        category:
+          type: string
+          enum: [electronics, personal-items, documents, clothing, keys, other]
+          example: "personal-items"
+
+    BatchLookupRequest:
+      type: object
+      required: [inventoryItemIds]
+      properties:
+        inventoryItemIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          example: ["inv-5501", "inv-5502", "inv-5503"]
+
+    BatchLookupResponse:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            required: [inventoryItemId, matched, foundItem]
+            properties:
+              inventoryItemId:
+                type: string
+                example: "inv-5501"
+              matched:
+                type: boolean
+                example: true
+              foundItem:
+                allOf:
+                  - $ref: '#/components/schemas/FoundItem'
+                nullable: true
+                description: The matching found-item record, or null if no match was found.
+
+    FlaggedCheckRequest:
+      type: object
+      required: [foundItemId, inventoryItemId, checkedBy, outcome]
+      properties:
+        foundItemId:
+          type: string
+          format: uuid
+          example: "7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11"
+        inventoryItemId:
+          type: string
+          example: "inv-5501"
+        checkedBy:
+          type: string
+          description: Identifier of the user or service that performed the check.
+          example: "team11-sync-service"
+        outcome:
+          type: string
+          enum: [match, no_match, needs_review]
+          example: "no_match"
+
+    FlaggedCheck:
+      type: object
+      required: [checkId, foundItemId, inventoryItemId, checkedBy, outcome, checkedAt]
+      properties:
+        checkId:
+          type: string
+          format: uuid
+          example: "f9e8d7c6-1234-4abc-9def-0123456789ab"
+        foundItemId:
+          type: string
+          format: uuid
+          example: "7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11"
+        inventoryItemId:
+          type: string
+          example: "inv-5501"
+        checkedBy:
+          type: string
+          example: "team11-sync-service"
+        outcome:
+          type: string
+          enum: [match, no_match, needs_review]
+          example: "no_match"
+        checkedAt:
+          type: string
+          format: date-time
+          example: "2026-08-13T10:05:00Z"
+
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          example: "not_found"
+        message:
+          type: string
+          example: "No found item exists with ID 7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11."
