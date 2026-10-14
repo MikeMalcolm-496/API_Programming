@@ -18,6 +18,7 @@ for (const envPath of envPaths) {
 }
 dotenv.config();
 
+const db = require('./db');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -28,9 +29,23 @@ app.get('/', (req, res) => {
   res.send('API is running');
 });
 
+app.get('/health', async (req, res) => {
+  try {
+    await db.query('SELECT 1');
+    return res.json({ status: 'ok', database: 'connected' });
+  } catch (error) {
+    console.error(error);
+    return res.status(503).json({ status: 'error', database: 'unavailable' });
+  }
+});
+
 const foundItemsRoutes = require('./routes/foundItems');
 app.use('/', foundItemsRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

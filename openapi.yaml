@@ -8,6 +8,39 @@ info:
     missing inventory records.
 
 paths:
+  /health:
+    get:
+      summary: Check API and database availability.
+      responses:
+        '200':
+          description: API and database are available.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, database]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  database:
+                    type: string
+                    example: connected
+        '503':
+          description: API is running but the database is unavailable.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, database]
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  database:
+                    type: string
+                    example: unavailable
+
   /found-items/{itemId}:
     get:
       summary: Retrieve a single found-item record by its ID.

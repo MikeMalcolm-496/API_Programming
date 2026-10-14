@@ -4,7 +4,7 @@
 
 The Lost & Found Service API allows other systems to retrieve information about found items on campus.
 
-It supports searching for found items, retrieving a specific item by its ID, and checking multiple inventory IDs against found-item records.
+It supports searching for found items, retrieving a specific item by its ID, checking multiple inventory IDs against found-item records, and recording reconciliation checks.
 
 The API uses Node.js, Express, and PostgreSQL.
 
@@ -45,9 +45,21 @@ The API uses PostgreSQL to store found-item records.
 Before starting the server:
 
 1. Make sure you have access to a PostgreSQL database.
-2. Configure the `DATABASE_URL` environment variable with your PostgreSQL connection string.
-3. The server loads environment variables from the `.env` file inside the `Lost_Found_System-main` directory.
-4. Make sure the database has the required tables and schema defined in `my-project/server/schema.sql`.
+2. Create `my-project/server/.env` and add your connection string:
+
+   ```env
+   DATABASE_URL=postgresql://USERNAME:PASSWORD@HOST:5432/DATABASE
+   PORT=5000
+   ```
+
+   The server also checks `Lost_Found_System-main/.env` and the repository-root `.env`.
+3. Apply the schema to that database from the server directory:
+
+   ```powershell
+   psql "$env:DATABASE_URL" -f schema.sql
+   ```
+
+   This creates the API tables, including `flagged_checks`. The database user needs permission to create the `extensions` schema/UUID extension if it is not already installed.
 
 **Security note:** Do not commit your `.env` file or share your database credentials publicly.
 
@@ -67,7 +79,7 @@ If the server starts successfully, the terminal should display:
 
 `Server running on http://localhost:5000`
 
-To check that the server is running, open this address in your browser:
+To check that the server process is running, open this address in your browser:
 
 `http://localhost:5000/`
 
@@ -75,6 +87,31 @@ The response should be:
 
 `API is running`
 
+To verify that the API can also reach PostgreSQL, open:
+
+`http://localhost:5000/health`
+
+The healthy response is `{"status":"ok","database":"connected"}`. A `503` response means the server is running but cannot query the configured database; check `DATABASE_URL`, database availability, and that the schema has been applied.
+
+The backend is available from this computer at `http://localhost:5000`. You can send requests with a browser for GET endpoints, Postman, or `curl.exe`. For example:
+
+```powershell
+curl.exe http://localhost:5000/found-items
+curl.exe "http://localhost:5000/found-items?category=electronics&keyword=phone"
+curl.exe -X POST http://localhost:5000/found-items/batch-lookup `
+  -H "Content-Type: application/json" `
+  -d '{ "inventoryItemIds": ["550e8400-e29b-41d4-a716-446655440000"] }'
+```
+
+To access the API from another device on the same trusted network, use this computer's local IP address instead of `localhost` (for example, `http://192.168.1.20:5000`) and allow the port through the machine's firewall. Do not expose the unauthenticated API to the public internet.
+
+Run the automated API tests from `my-project/server`:
+
+```powershell
+npm test
+```
+
+These tests exercise the endpoint request/response behavior with a mocked database. `/health` tests the real database connection when the server is running, and an endpoint request against real records provides an end-to-end database check.
 
 ## Authentication
 
@@ -109,15 +146,17 @@ This endpoint retrieves a list of found items. You can optionally filter the res
 ```json
 [
   {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "category": "electronics",
+    "itemId": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "unclaimed",
+    "location": "Library, 2nd Floor Front Desk",
+    "dateFound": "2026-10-10",
     "description": "Black mobile phone",
-    "date_found": "2026-10-10"
+    "category": "electronics"
   }
 ]
 ```
 
-The response fields depend on the records returned by the database. The example above illustrates the general structure; the exact response has not yet been tested against your database.
+Responses contain `itemId`, `status`, `location`, `dateFound`, `description`, and `category`. Automated tests verify this response shape using representative database results; verify live data with your configured database.
 
 ### 2. Get a Found Item by ID
 
@@ -170,7 +209,12 @@ Send the IDs in the request body as JSON.
       "inventoryItemId": "550e8400-e29b-41d4-a716-446655440000",
       "matched": true,
       "foundItem": {
-        "id": "550e8400-e29b-41d4-a716-446655440000"
+        "itemId": "550e8400-e29b-41d4-a716-446655440000",
+        "status": "unclaimed",
+        "location": "Library, 2nd Floor Front Desk",
+        "dateFound": "2026-10-10",
+        "description": "Black mobile phone",
+        "category": "electronics"
       }
     },
     {
@@ -190,15 +234,24 @@ The response above is illustrative. Actual results depend on the records in the 
 * **400 Bad Request** — The request body does not contain a valid array of inventory item IDs.
 * **500 Internal Server Error** — The server encountered a database error.
 
-### 4. Flagged Checks — Implementation Status
+### 4. Record a Flagged Check
 
-**Documented request**
+**Request**
 
 `POST /flagged-checks`
 
-This endpoint is included in the OpenAPI specification. However, its implementation has not been found in the server routes inspected so far.
+Send `foundItemId` (an existing found-item UUID), `inventoryItemId`, `checkedBy`, and `outcome` (`match`, `no_match`, or `needs_review`) as JSON. A successful request returns `201 Created` with the persisted check record. Invalid input returns `400`; an unknown found-item ID returns `404`.
 
-**Important:** The endpoint has not been verified as working. Confirm with the development team whether it needs to be implemented before using it.
+**Example request**
+
+```json
+{
+  "foundItemId": "550e8400-e29b-41d4-a716-446655440000",
+  "inventoryItemId": "inv-5501",
+  "checkedBy": "team11-sync-service",
+  "outcome": "no_match"
+}
+```
 
 ## Error Responses
 
@@ -242,5 +295,3 @@ The documentation displays the available API endpoints, request parameters, and 
 
 **Note:** This address works when the local documentation server is running. It is not a public website.
  |
-
-

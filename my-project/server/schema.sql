@@ -1,3 +1,4 @@
+CREATE SCHEMA IF NOT EXISTS extensions;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -21,6 +22,15 @@ CREATE TABLE IF NOT EXISTS found_items (
   status varchar NOT NULL DEFAULT 'unclaimed',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS flagged_checks (
+  check_id uuid PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
+  found_item_id uuid NOT NULL REFERENCES found_items(id),
+  inventory_item_id varchar NOT NULL,
+  checked_by varchar NOT NULL,
+  outcome varchar NOT NULL CHECK (outcome IN ('match', 'no_match', 'needs_review')),
+  checked_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS found_item_images (

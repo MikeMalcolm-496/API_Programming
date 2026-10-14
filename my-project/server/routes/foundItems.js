@@ -12,6 +12,7 @@ const categories = new Set([
   'other',
 ]);
 
+const outcomes = new Set(['match', 'no_match', 'needs_review']);
 const selectColumns = `
   id AS "itemId",
   status,
@@ -25,7 +26,7 @@ const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}
 
 function sendDatabaseError(res, error) {
   console.error(error);
-  res.status(500).json({ error: 'internal_error', message: 'Failed to retrieve found items.' });
+  res.status(500).json({ error: 'internal_error', message: 'Failed to process the request.' });
 }
 
 router.get('/found-items/:itemId', async (req, res) => {
@@ -128,6 +129,52 @@ router.post('/found-items/batch-lookup', async (req, res) => {
         foundItem: matches.get(inventoryItemId) || null,
       })),
     });
+  } catch (error) {
+    return sendDatabaseError(res, error);
+  }
+});
+
+router.post('/flagged-checks', async (req, res) => {
+  const { foundItemId, inventoryItemId, checkedBy, outcome } = req.body || {};
+
+  if (
+    typeof foundItemId !== 'string' ||
+    !uuidPattern.test(foundItemId) ||
+    typeof inventoryItemId !== 'string' ||
+    inventoryItemId.trim() === '' ||
+    typeof checkedBy !== 'string' ||
+    checkedBy.trim() === '' ||
+    typeof outcome !== 'string' ||
+    !outcomes.has(outcome)
+  ) {
+    return res.status(400).json({
+      error: 'invalid_request',
+      message: 'foundItemId, inventoryItemId, checkedBy, and a valid outcome are required.',
+    });
+  }
+
+  try {
+    const result = await db.query(
+      `INSERT INTO flagged_checks (found_item_id, inventory_item_id, checked_by, outcome)
+       SELECT id, $2, $3, $4 FROM found_items WHERE id = $1::uuid
+       RETURNING
+         check_id AS "checkId",
+         found_item_id AS "foundItemId",
+         inventory_item_id AS "inventoryItemId",
+         checked_by AS "checkedBy",
+         outcome,
+         checked_at AS "checkedAt"`,
+      [foundItemId, inventoryItemId.trim(), checkedBy.trim(), outcome],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'not_found',
+        message: `No found item exists with ID ${foundItemId}.`,
+      });
+    }
+
+    return res.status(201).json(result.rows[0]);
   } catch (error) {
     return sendDatabaseError(res, error);
   }
