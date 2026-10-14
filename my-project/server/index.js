@@ -2,9 +2,21 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
-require('dotenv').config({
-  path: path.resolve(__dirname, '../../Lost_Found_System-main/.env'),
-});
+const fs = require('fs');
+const dotenv = require('dotenv');
+
+const envPaths = [
+  path.resolve(__dirname, '.env'),
+  path.resolve(__dirname, '../../Lost_Found_System-main/.env'),
+  path.resolve(__dirname, '../../.env'),
+];
+
+for (const envPath of envPaths) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+  }
+}
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
