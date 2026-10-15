@@ -29,7 +29,15 @@ app.use(express.json());
 //   res.send('API is running');
 // });
 
-app.use(express.static(path.join(__dirname, '../.swagger')));
+// app.use(express.static(path.join(__dirname, '../.swagger')));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/openapi.yaml', (req, res) => {
+  res.sendFile(path.join(__dirname, 'openapi.yaml'));
+});
 
 app.get('/health', async (req, res) => {
   try {
