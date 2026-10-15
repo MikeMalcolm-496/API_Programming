@@ -7,6 +7,14 @@ info:
     (Inventory) to look up, search, and reconcile found items against
     missing inventory records.
 
+servers:
+  - url: /
+    description: This server (works on Railway and on localhost)
+  - url: https://apiprogramming-production.up.railway.app
+    description: Public deployment (Railway)
+  - url: http://localhost:5000
+    description: Local development
+
 paths:
   /health:
     get:
@@ -68,7 +76,7 @@ paths:
                 description: "Black umbrella with wooden handle"
                 category: "personal-items"
         '404':
-          description: No found item exists with the given ID.
+          description: No found item exists with the given ID (an ID that is not a valid UUID is treated as not found).
           content:
             application/json:
               schema:
@@ -147,7 +155,9 @@ paths:
     post:
       summary: >
         Check a batch of missing-inventory IDs against found items in a
-        single request, for daily reconciliation.
+        single request, for daily reconciliation. An inventory ID is matched
+        when a flagged check with outcome `match` links it to a found item;
+        results are returned in the same order as the submitted IDs.
       requestBody:
         required: true
         content:
@@ -230,7 +240,7 @@ paths:
                 error: "invalid_request"
                 message: "outcome must be one of: match, no_match, needs_review."
         '404':
-          description: The referenced foundItemId does not exist.
+          description: The referenced foundItemId does not exist (an ID that is not a valid UUID is treated as not found).
           content:
             application/json:
               schema:
@@ -359,9 +369,3 @@ components:
         message:
           type: string
           example: "No found item exists with ID 7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11."
-        
-servers:
-  - url: http://localhost:5000
-    description: Local development
-  - url: https://https://quotes-expires-era-forever.trycloudflare.com/
-    description: Public tunnel (temporary)

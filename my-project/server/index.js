@@ -25,16 +25,10 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// app.get('/', (req, res) => {
-//   res.send('API is running');
-// });
-
-// app.use(express.static(path.join(__dirname, '../.swagger')));
-
+// Swagger UI + the contract it loads
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
-
 app.get('/openapi.yaml', (req, res) => {
   res.sendFile(path.join(__dirname, 'openapi.yaml'));
 });
@@ -51,6 +45,20 @@ app.get('/health', async (req, res) => {
 
 const foundItemsRoutes = require('./routes/foundItems');
 app.use('/', foundItemsRoutes);
+
+// Unknown routes -> JSON 404
+app.use((req, res) => {
+  res.status(404).json({ error: 'not_found', message: `Route ${req.method} ${req.path} does not exist.` });
+});
+
+// Malformed JSON bodies -> 400; anything else -> 500 (always JSON)
+app.use((err, req, res, next) => {
+  if (err && (err.type === 'entity.parse.failed' || err.status === 400)) {
+    return res.status(400).json({ error: 'invalid_request', message: 'Request body must be valid JSON.' });
+  }
+  console.error(err);
+  return res.status(500).json({ error: 'internal_error', message: 'Failed to process the request.' });
+});
 
 if (require.main === module) {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

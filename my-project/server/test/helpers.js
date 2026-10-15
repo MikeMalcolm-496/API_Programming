@@ -1,7 +1,16 @@
 const request = require('supertest');
-
-const target = process.env.BASE_URL || require('../index');;
+// Local run: tests hit your app. Partner run: BASE_URL=http://their-host:port npx jest
+const target = process.env.BASE_URL || require('../index');
 const api = () => request(target);
+
+// Close the DB pool after each suite so Jest can exit (fixes "worker failed to exit").
+afterAll(async () => {
+  try {
+    const db = require('../db');
+    if (db && typeof db.end === 'function') await db.end();
+    else if (db && db.pool && typeof db.pool.end === 'function') await db.pool.end();
+  } catch (e) { /* already closed */ }
+});
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const STATUSES = ['unclaimed', 'claimed', 'pending-verification'];
