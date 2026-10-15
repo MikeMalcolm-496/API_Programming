@@ -43,9 +43,7 @@ const foundItemsRoutes = require('./routes/foundItems');
 app.use('/', foundItemsRoutes);
 
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
 module.exports = app;
