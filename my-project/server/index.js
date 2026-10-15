@@ -25,9 +25,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('API is running');
-});
+// app.get('/', (req, res) => {
+//   res.send('API is running');
+// });
+
+app.use(express.static(path.join(__dirname, '../.swagger')));
 
 app.get('/health', async (req, res) => {
   try {
