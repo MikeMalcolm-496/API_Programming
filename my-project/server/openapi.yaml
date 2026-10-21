@@ -9,9 +9,9 @@ info:
 
 servers:
   - url: /
-    description: This server (works on Railway and on localhost)
-  - url: https://apiprogramming-production.up.railway.app
-    description: Public deployment (Railway)
+    description: This server (works on Render and on localhost)
+  - url: https://api-programming.onrender.com
+    description: Public deployment (Render)
   - url: http://localhost:5000
     description: Local development
 
