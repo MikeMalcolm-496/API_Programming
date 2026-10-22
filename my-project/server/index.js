@@ -46,6 +46,11 @@ app.get('/health', async (req, res) => {
 const foundItemsRoutes = require('./routes/foundItems');
 app.use('/', foundItemsRoutes);
 
+app.use('/auth', require('./routes/auth'));
+app.use('/', require('./routes/staffItems'));
+app.use('/', require('./routes/inquiries'));
+app.use('/', require('./routes/images'));
+
 // Unknown routes -> JSON 404
 app.use((req, res) => {
   res.status(404).json({ error: 'not_found', message: `Route ${req.method} ${req.path} does not exist.` });

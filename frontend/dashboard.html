@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Lost &amp; Found</title>
+    <meta name="api-base" content="https://api-programming.onrender.com" />
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="index.html">Lost &amp; Found</a>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Browse Items</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="dashboard-header">
+            <h1>Dashboard</h1>
+            <p id="dashboardRoleInfo"></p>
+        </div>
+
+        <div id="securityDashboard" hidden>
+            <section class="dashboard-section">
+                <h2>Post New Found Item</h2>
+                <form id="postItemForm" class="form-card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemTitle">Item Title</label>
+                            <input type="text" id="itemTitle" placeholder="e.g., Black Laptop Bag" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="itemCategory">Category</label>
+                            <select id="itemCategory" required>
+                                <option value="">Select Category</option>
+                                <option value="electronics">Electronics</option>
+                                <option value="personal-items">Personal items</option>
+                                <option value="documents">Documents</option>
+                                <option value="clothing">Clothing</option>
+                                <option value="keys">Keys</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemLocation">Location Found</label>
+                            <input type="text" id="itemLocation" placeholder="e.g., Library Hall" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="itemDate">Date Found</label>
+                            <input type="date" id="itemDate" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemDescription">Description</label>
+                        <textarea id="itemDescription" rows="3" placeholder="Detailed description of the item..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemImages">Upload Images</label>
+                        <input type="file" id="itemImages" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
+                        <small class="form-hint">Up to 5 images, 5 MB each</small>
+                    </div>
+                    <div id="postItemError" class="error-message" role="alert" hidden></div>
+                    <div id="postItemSuccess" class="success-message" role="status" hidden></div>
+                    <button type="submit" class="btn btn-primary">Post Item</button>
+                </form>
+            </section>
+
+            <section class="dashboard-section">
+                <h2>Inquiries to Review</h2>
+                <div id="inquiriesContainer"><p class="text-muted">Loading...</p></div>
+            </section>
+
+            <section class="dashboard-section">
+                <h2>My Posted Items</h2>
+                <div id="myItemsContainer"><p class="text-muted">Loading...</p></div>
+            </section>
+        </div>
+
+        <div id="studentDashboard" hidden>
+            <section class="dashboard-section">
+                <h2>My Claims</h2>
+                <div id="myClaimsContainer"><p class="text-muted">Loading...</p></div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Strathmore University - Lost &amp; Found Platform</p>
+    </footer>
+    <script src="js/session.js" defer></script>
+    <script src="js/dashboard.js" defer></script>
+</body>
+</html>

@@ -8,6 +8,14 @@ It supports searching for found items, retrieving a specific item by its ID, che
 
 The API uses Node.js, Express, and PostgreSQL.
 
+## Browser Frontend
+
+The static browser UI is in `frontend/`. Serve that folder over HTTP (for example, from the repository root run `python -m http.server 8080 --directory frontend`) and open `http://localhost:8080`.
+
+The UI uses the read-only `GET /found-items` and `GET /found-items/{itemId}` endpoints. Its category and status filters use the values in `my-project/server/openapi.yaml`; status filtering is performed in the browser because the list endpoint does not define a status query parameter. The default API base is `https://api-programming.onrender.com`. To use a local API instead, change the `api-base` meta value in both `frontend/index.html` and `frontend/item-detail.html` to `http://localhost:5000`.
+
+Login, registration, item posting, claims, and messaging are not available in the current HTTP API contract; their pages explain this rather than presenting non-functional forms.
+
 ## Base URL
 
 When running the API locally, use:

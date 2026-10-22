@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lost & Found - Strathmore University</title>
+    <meta name="api-base" content="https://api-programming.onrender.com" />
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="index.html">Lost & Found</a>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="active">Browse Items</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        
+        <section class="hero">
+            <h1>Lost Something? Found Something?</h1>
+            <p>Check our platform to see if your lost item has been found and submitted by security staff.</p>
+        </section>
+
+        <section class="filters">
+            <div class="filter-group">
+                <label for="categoryFilter">Category</label>
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="personal-items">Personal items</option>
+                    <option value="documents">Documents</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="keys">Keys</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="keywordFilter">Search description</label>
+                <input type="search" id="keywordFilter" placeholder="e.g., umbrella" />
+            </div>
+            <div class="filter-group">
+                <label for="statusFilter">Status</label>
+                <select id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="unclaimed">Unclaimed</option>
+                    <option value="claimed">Claimed</option>
+                    <option value="pending-verification">Pending verification</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+        </section>
+
+        <section class="items-grid" id="itemsGrid">
+            <div class="loading-spinner" id="loadingSpinner" role="status" aria-live="polite">
+                <div class="spinner"></div>
+                <p>Loading items...</p>
+            </div>
+            <div id="itemsContainer" aria-live="polite"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Strathmore University - Lost & Found Platform</p>
+    </footer>
+    <script src="js/app.js" defer></script>
+</body>
+</html>

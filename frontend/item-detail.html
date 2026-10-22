@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Item Details - Lost &amp; Found</title>
+    <meta name="api-base" content="https://api-programming.onrender.com" />
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="index.html">Lost &amp; Found</a>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Browse Items</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="item-detail-container" id="itemDetail">
+            <div class="loading-spinner" id="loadingSpinner" role="status" aria-live="polite">
+                <div class="spinner"></div>
+                <p>Loading item details...</p>
+            </div>
+            <div id="itemError" class="error-message" role="alert" hidden></div>
+            <div id="itemContent" hidden>
+                <div class="item-detail-grid">
+                    <div class="item-images" id="itemImages" hidden></div>
+                    <div class="item-info">
+                        <h1>Found item</h1>
+                        <p><span class="item-status" id="itemStatus"></span></p>
+                        <div class="item-meta">
+                            <p><strong>Category:</strong> <span id="itemCategory"></span></p>
+                            <p><strong>Location Found:</strong> <span id="itemLocation"></span></p>
+                            <p><strong>Date Found:</strong> <span id="itemDate"></span></p>
+                            <p><strong>Item ID:</strong> <span id="itemId"></span></p>
+                        </div>
+                        <div class="item-description">
+                            <h3>Description</h3>
+                            <p id="itemDescription"></p>
+                        </div>
+
+                        <div id="inquirySection" class="inquiry-section">
+                            <h3>Claim This Item</h3>
+                            <form id="claimForm">
+                                <div class="form-group">
+                                    <label for="claimDescription">Describe why this is your item</label>
+                                    <textarea id="claimDescription" rows="4" placeholder="Please provide details to verify ownership..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Submit Claim</button>
+                            </form>
+                            <div id="claimMessage" class="info-message" hidden></div>
+                        </div>
+
+                        <div id="messagesSection" class="messages-section" hidden>
+                            <h3>Messages</h3>
+                            <div id="messagesContainer" class="messages-container"></div>
+                            <form id="messageForm" class="message-form">
+                                <div class="form-group">
+                                    <input type="text" id="messageInput" placeholder="Type your message..." required />
+                                    <button type="submit" class="btn btn-primary">Send</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <p><a class="btn btn-primary" href="index.html">Back to found items</a></p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Strathmore University - Lost &amp; Found Platform</p>
+    </footer>
+    <script src="js/session.js" defer></script>
+    <script src="js/app.js" defer></script>
+    <script src="js/claims.js" defer></script>
+</body>
+</html>

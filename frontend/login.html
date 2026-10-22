@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Lost &amp; Found</title>
+    <meta name="api-base" content="https://api-programming.onrender.com" />
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="index.html">Lost &amp; Found</a>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Browse Items</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container auth-container">
+        <div class="auth-card">
+            <h2>Login to Your Account</h2>
+            <p class="auth-subtitle">Access your lost and found dashboard</p>
+
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="Enter your email" required />
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required />
+                </div>
+                <div id="loginError" class="error-message" role="alert" hidden></div>
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </form>
+
+            <p class="auth-footer">
+                Don't have an account? <a href="register.html">Register here</a>
+            </p>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Strathmore University - Lost &amp; Found Platform</p>
+    </footer>
+    <script src="js/session.js" defer></script>
+    <script src="js/auth.js" defer></script>
+</body>
+</html>
