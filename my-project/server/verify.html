@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claim Verification</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #f6f4ef; color: #14213d; margin: 0; padding: 32px 16px; }
+  main { max-width: 720px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  .sub { color: #4a5568; margin: 0 0 24px; }
+  form { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+  input, button { font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid #d8d4ca; }
+  button { background: #14213d; color: #f6f4ef; border: none; cursor: pointer; }
+  .card { background: #fffdf8; border: 1px solid #d8d4ca; border-radius: 12px; padding: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat b { display: block; font-size: 24px; }
+  .stat span { color: #4a5568; font-size: 14px; }
+  .msg { padding: 16px; border-radius: 12px; background: #fdecea; color: #8a1c13; }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { text-align: left; padding: 8px; border-bottom: 1px solid #e6e2d8; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Claim verification</h1>
+  <p class="sub">Checks a claimant’s Strathbites order history before releasing a lost item.</p>
+  <form id="f">
+    <input id="userId" placeholder="User ID" value="3" required>
+    <input id="locationId" placeholder="Location ID" value="cafe-3" required>
+    <button>Verify claim</button>
+  </form>
+  <div id="out"></div>
+</main>
+<script>
+const out = document.getElementById('out');
+document.getElementById('f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  out.innerHTML = 'Checking…';
+  const q = new URLSearchParams({ userId: userId.value.trim(), locationId: locationId.value.trim() });
+  try {
+    const res = await fetch('/claims/verify?' + q);
+    const data = await res.json();
+    if (!res.ok) { out.innerHTML = `<div class="msg">${esc(data.message || 'Partner data is unavailable right now')}</div>`; return; }
+    const rows = data.ordersAtLocation.map(o => `<tr><td>${esc(o.orderId)}</td><td>${esc(new Date(o.timestamp).toLocaleString())}</td></tr>`).join('')
+      || '<tr><td colspan="2">No orders at this location</td></tr>';
+    out.innerHTML = `<div class="card">
+      <div class="grid">
+        <div class="stat"><b>${data.orderCount}</b><span>orders at ${esc(data.locationId)}</span></div>
+        <div class="stat"><b>${data.isFirstTimeUser ? 'Yes' : 'No'}</b><span>first-time visitor</span></div>
+        <div class="stat"><b>${esc(data.credibility)}</b><span>claim credibility</span></div>
+        <div class="stat"><b>${data.lastOrderDate ? esc(new Date(data.lastOrderDate).toLocaleDateString()) : 'None'}</b><span>last order here</span></div>
+      </div>
+      <table><tr><th>Order</th><th>Time</th></tr>${rows}</table></div>`;
+  } catch {
+    out.innerHTML = '<div class="msg">Partner data is unavailable right now</div>';
+  }
+});
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+</body>
+</html>

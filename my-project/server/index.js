@@ -43,6 +43,12 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// Week 10: claim verification page + route (consumes the Strathbites API)
+app.get('/verify', (req, res) => {
+  res.sendFile(path.join(__dirname, 'verify.html'));
+});
+app.use('/', require('./routes/claimVerification'));
+
 const foundItemsRoutes = require('./routes/foundItems');
 app.use('/', foundItemsRoutes);
 
