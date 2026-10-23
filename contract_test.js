@@ -6,6 +6,9 @@ jestOpenAPI(path.join(__dirname, 'openapi.yaml'));
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 const api = request(BASE_URL);
+// Lost & Found now needs an API key on batch-lookup and flagged-checks:
+//   API_KEY=lfk_live_... BASE_URL=http://localhost:5000 npx jest contract_test.js
+const API_KEY = process.env.API_KEY || '';
 
 const FOUND_ITEM_KEYS = ['category', 'dateFound', 'description', 'itemId', 'location', 'status'];
 const FLAGGED_CHECK_KEYS = ['checkId', 'checkedAt', 'checkedBy', 'foundItemId', 'inventoryItemId', 'outcome'];
@@ -135,7 +138,7 @@ describe('POST /found-items/batch-lookup', () => {
   const ids = ['inv-5501', 'inv-5502', 'inv-5503'];
 
   test('200: one result per submitted id, matched flag consistent with foundItem', async () => {
-    const res = await api.post('/found-items/batch-lookup').send({ inventoryItemIds: ids });
+    const res = await api.post('/found-items/batch-lookup').set('X-API-Key', API_KEY).send({ inventoryItemIds: ids });
     expect(res.status).toBe(200);
     expect(res).toSatisfyApiSpec();
     expect(res.body.results).toHaveLength(ids.length);
@@ -152,8 +155,8 @@ describe('POST /found-items/batch-lookup', () => {
   });
 
   test('read-only: sending the same batch twice gives the same result', async () => {
-    const first = await api.post('/found-items/batch-lookup').send({ inventoryItemIds: ids });
-    const second = await api.post('/found-items/batch-lookup').send({ inventoryItemIds: ids });
+    const first = await api.post('/found-items/batch-lookup').set('X-API-Key', API_KEY).send({ inventoryItemIds: ids });
+    const second = await api.post('/found-items/batch-lookup').set('X-API-Key', API_KEY).send({ inventoryItemIds: ids });
     expect(second.status).toBe(first.status);
     expect(second.body).toEqual(first.body);
   });
@@ -164,7 +167,7 @@ describe('POST /found-items/batch-lookup', () => {
     ['not an array', { inventoryItemIds: 'inv-5501' }],
     ['array of non-strings', { inventoryItemIds: [5501, 5502] }],
   ])('400: %s', async (_name, body) => {
-    const res = await api.post('/found-items/batch-lookup').send(body);
+    const res = await api.post('/found-items/batch-lookup').set('X-API-Key', API_KEY).send(body);
     expectError(res, 400, 'invalid_request');
   });
 });
@@ -179,7 +182,7 @@ describe('POST /flagged-checks', () => {
 
   test.each(OUTCOMES)('201: valid request with outcome "%s" is recorded and echoed back', async (outcome) => {
     const body = { ...validBody(), outcome };
-    const res = await api.post('/flagged-checks').send(body);
+    const res = await api.post('/flagged-checks').set('X-API-Key', API_KEY).send(body);
     expect(res.status).toBe(201);
     expect(res).toSatisfyApiSpec();
     expectFlaggedCheckShape(res.body);
@@ -191,18 +194,18 @@ describe('POST /flagged-checks', () => {
     async (field) => {
       const body = validBody();
       delete body[field];
-      const res = await api.post('/flagged-checks').send(body);
+      const res = await api.post('/flagged-checks').set('X-API-Key', API_KEY).send(body);
       expectError(res, 400, 'invalid_request');
     }
   );
 
   test('400: empty body', async () => {
-    const res = await api.post('/flagged-checks').send({});
+    const res = await api.post('/flagged-checks').set('X-API-Key', API_KEY).send({});
     expectError(res, 400, 'invalid_request');
   });
 
   test('400: outcome not in the allowed set', async () => {
-    const res = await api.post('/flagged-checks').send({ ...validBody(), outcome: 'maybe' });
+    const res = await api.post('/flagged-checks').set('X-API-Key', API_KEY).send({ ...validBody(), outcome: 'maybe' });
     expectError(res, 400, 'invalid_request');
   });
 
@@ -212,23 +215,23 @@ describe('POST /flagged-checks', () => {
     ['checkedBy', 123],
     ['outcome', 123],
   ])('400: wrong type for "%s"', async (field, value) => {
-    const res = await api.post('/flagged-checks').send({ ...validBody(), [field]: value });
+    const res = await api.post('/flagged-checks').set('X-API-Key', API_KEY).send({ ...validBody(), [field]: value });
     expectError(res, 400, 'invalid_request');
   });
 
   test('400: present but unusable value (empty checkedBy)', async () => {
-    const res = await api.post('/flagged-checks').send({ ...validBody(), checkedBy: '' });
+    const res = await api.post('/flagged-checks').set('X-API-Key', API_KEY).send({ ...validBody(), checkedBy: '' });
     expectError(res, 400, 'invalid_request');
   });
 
   test('404: foundItemId is valid but does not exist', async () => {
-    const res = await api.post('/flagged-checks').send({ ...validBody(), foundItemId: NONEXISTENT_ID });
+    const res = await api.post('/flagged-checks').set('X-API-Key', API_KEY).send({ ...validBody(), foundItemId: NONEXISTENT_ID });
     expectError(res, 404, 'not_found');
   });
 
   test('validation runs before the existence check (invalid outcome + unknown id gives 400, not 404)', async () => {
     const res = await api
-      .post('/flagged-checks')
+      .post('/flagged-checks').set('X-API-Key', API_KEY)
       .send({ ...validBody(), foundItemId: NONEXISTENT_ID, outcome: 'maybe' });
     expectError(res, 400, 'invalid_request');
   });

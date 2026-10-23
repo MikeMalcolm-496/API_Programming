@@ -6,57 +6,89 @@
 <title>Claim Verification</title>
 <style>
   body { font-family: system-ui, sans-serif; background: #f6f4ef; color: #14213d; margin: 0; padding: 32px 16px; }
-  main { max-width: 720px; margin: 0 auto; }
+  main { max-width: 760px; margin: 0 auto; }
   h1 { margin: 0 0 4px; font-size: 28px; }
+  h2 { font-size: 16px; margin: 20px 0 8px; }
   .sub { color: #4a5568; margin: 0 0 24px; }
-  form { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+  form { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; align-items: end; }
+  label { display: flex; flex-direction: column; font-size: 13px; color: #4a5568; gap: 4px; }
   input, button { font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid #d8d4ca; }
   button { background: #14213d; color: #f6f4ef; border: none; cursor: pointer; }
   .card { background: #fffdf8; border: 1px solid #d8d4ca; border-radius: 12px; padding: 20px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
   .stat b { display: block; font-size: 24px; }
   .stat span { color: #4a5568; font-size: 14px; }
+  .high { color: #0b7a3e; } .medium { color: #a86b00; } .low { color: #b3261e; }
   .msg { padding: 16px; border-radius: 12px; background: #fdecea; color: #8a1c13; }
-  table { width: 100%; border-collapse: collapse; }
-  td, th { text-align: left; padding: 8px; border-bottom: 1px solid #e6e2d8; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td, th { text-align: left; padding: 8px; border-bottom: 1px solid #e6e2d8; word-break: break-all; }
+  td:nth-child(2), td:nth-child(3), th:nth-child(2), th:nth-child(3) { white-space: nowrap; word-break: normal; }
+  .hint { font-size: 13px; color: #4a5568; }
 </style>
 </head>
 <body>
 <main>
   <h1>Claim verification</h1>
-  <p class="sub">Checks a claimant’s Strathbites order history before releasing a lost item.</p>
+  <p class="sub">Checks a claimant’s Strathbites order history before releasing a lost item. Press F12 and open the Console tab to see each Strathbites call. Needs an API key with the <code>claims:verify</code> scope.</p>
   <form id="f">
-    <input id="userId" placeholder="User ID" value="3" required>
-    <input id="locationId" placeholder="Location ID" value="cafe-3" required>
+    <label>Strathbites user ID <input id="userId" value="3" required></label>
+    <label>Location ID <input id="locationId" value="cafe-3" required></label>
+    <label>Date lost (optional) <input id="lostDate" type="date" value="2026-10-20"></label>
+    <label>API key (claims:verify) <input id="apiKey" type="password" placeholder="lfk_live_..." autocomplete="off"></label>
     <button>Verify claim</button>
   </form>
   <div id="out"></div>
 </main>
 <script>
 const out = document.getElementById('out');
+// The key is kept only for this browser tab (sessionStorage), never in the URL.
+try { apiKey.value = sessionStorage.getItem('lf_verify_key') || ''; } catch (e) { /* storage blocked */ }
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function logCalls(ourUrl, data) {
+  console.groupCollapsed('%c[Strathbites] verification', 'color:#0b7a3e;font-weight:bold');
+  console.log('Browser -> our server:', location.origin + ourUrl);
+  if (data && data.partnerCalls) {
+    console.log('Our server -> Strathbites:');
+    console.table(data.partnerCalls);
+  }
+  console.log('Response:', data);
+  console.groupEnd();
+}
+
 document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault();
   out.innerHTML = 'Checking…';
   const q = new URLSearchParams({ userId: userId.value.trim(), locationId: locationId.value.trim() });
+  if (lostDate.value) q.set('lostDate', lostDate.value);
+  const ourUrl = '/claims/verify?' + q;
   try {
-    const res = await fetch('/claims/verify?' + q);
+    try { sessionStorage.setItem('lf_verify_key', apiKey.value.trim()); } catch (e) { /* storage blocked */ }
+    const res = await fetch(ourUrl, { headers: apiKey.value.trim() ? { 'X-API-Key': apiKey.value.trim() } : {} });
     const data = await res.json();
+    logCalls(ourUrl, data);
     if (!res.ok) { out.innerHTML = `<div class="msg">${esc(data.message || 'Partner data is unavailable right now')}</div>`; return; }
     const rows = data.ordersAtLocation.map(o => `<tr><td>${esc(o.orderId)}</td><td>${esc(new Date(o.timestamp).toLocaleString())}</td></tr>`).join('')
       || '<tr><td colspan="2">No orders at this location</td></tr>';
+    const calls = data.partnerCalls.map(c => `<tr><td>${esc(c.endpoint)}</td><td>${esc(c.status)}</td><td>${esc(c.ms)} ms</td><td>${esc(c.url)}</td></tr>`).join('');
+    const present = data.presentOnLostDate === null ? 'n/a' : (data.presentOnLostDate ? 'Yes' : 'No');
     out.innerHTML = `<div class="card">
       <div class="grid">
         <div class="stat"><b>${data.orderCount}</b><span>orders at ${esc(data.locationId)}</span></div>
+        <div class="stat"><b>${present}</b><span>ordered there on lost date</span></div>
         <div class="stat"><b>${data.isFirstTimeUser ? 'Yes' : 'No'}</b><span>first-time visitor</span></div>
-        <div class="stat"><b>${esc(data.credibility)}</b><span>claim credibility</span></div>
-        <div class="stat"><b>${data.lastOrderDate ? esc(new Date(data.lastOrderDate).toLocaleDateString()) : 'None'}</b><span>last order here</span></div>
+        <div class="stat"><b class="${esc(data.credibility)}">${esc(data.credibility.toUpperCase())}</b><span>claim credibility</span></div>
       </div>
-      <table><tr><th>Order</th><th>Time</th></tr>${rows}</table></div>`;
+      <ul>${data.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
+      <h2>Orders at this location</h2>
+      <table><tr><th>Order</th><th>Time</th></tr>${rows}</table>
+      <h2>Strathbites calls made by our server</h2>
+      <table><tr><th>Endpoint</th><th>Status</th><th>Time</th><th>URL</th></tr>${calls}</table>
+      <p class="hint">The browser only called <code>${esc(ourUrl)}</code>. Our server made the three calls above.</p></div>`;
   } catch {
     out.innerHTML = '<div class="msg">Partner data is unavailable right now</div>';
   }
 });
-function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 </script>
 </body>
 </html>

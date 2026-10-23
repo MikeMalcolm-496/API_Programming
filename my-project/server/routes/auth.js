@@ -11,7 +11,15 @@ const ROLES = ['student', 'security', 'admin'];
 
 const publicUser = (u) => ({
   id: u.id, fullName: u.full_name, email: u.email, role: u.role, studentId: u.student_id,
+  strathbitesUserId: u.strathbites_user_id ?? null,
 });
+// Optional Strathbites user ID (a positive whole number); '' / null clears it.
+const parseStrathbitesId = (v) => {
+  if (v === undefined) return { skip: true };
+  if (v === null || v === '') return { value: null };
+  const n = Number(v);
+  return Number.isInteger(n) && n > 0 ? { value: n } : { error: 'strathbitesUserId must be a positive whole number.' };
+};
 
 // POST /auth/register
 // Anyone can register as a student. security/admin accounts need the staff
@@ -34,13 +42,15 @@ router.post('/register', async (req, res) => {
         return fail(res, 403, 'forbidden', 'A valid staff sign-up code is required for this role.');
       }
     }
+    const sb = parseStrathbitesId(b.strathbitesUserId);
+    if (sb.error) return fail(res, 400, 'invalid_request', sb.error);
     const hash = await bcrypt.hash(b.password, 10);
     try {
       const { rows } = await db.query(
-        `INSERT INTO users (full_name, email, hashed_password, role, student_id)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        `INSERT INTO users (full_name, email, hashed_password, role, student_id, strathbites_user_id)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
         [b.fullName.trim(), b.email.trim().toLowerCase(), hash, role,
-         isNonEmptyString(b.studentId) ? b.studentId.trim() : null]
+         isNonEmptyString(b.studentId) ? b.studentId.trim() : null, sb.value ?? null]
       );
       return res.status(201).json(publicUser(rows[0]));
     } catch (e) {
@@ -76,6 +86,21 @@ router.post('/login', async (req, res) => {
 router.get('/me', authenticate, async (req, res) => {
   try {
     const { rows } = await db.query('SELECT * FROM users WHERE id = $1', [req.user.id]);
+    if (rows.length === 0) return fail(res, 401, 'unauthorized', 'Account no longer exists.');
+    return res.json(publicUser(rows[0]));
+  } catch (err) {
+    return serverError(res, err);
+  }
+});
+
+// PATCH /auth/me  { strathbitesUserId }  -> link (or unlink) your Strathbites account
+router.patch('/me', authenticate, async (req, res) => {
+  try {
+    const sb = parseStrathbitesId((req.body || {}).strathbitesUserId);
+    if (sb.skip) return fail(res, 400, 'invalid_request', 'strathbitesUserId is required (use null to unlink).');
+    if (sb.error) return fail(res, 400, 'invalid_request', sb.error);
+    const { rows } = await db.query(
+      'UPDATE users SET strathbites_user_id = $1 WHERE id = $2 RETURNING *', [sb.value, req.user.id]);
     if (rows.length === 0) return fail(res, 401, 'unauthorized', 'Account no longer exists.');
     return res.json(publicUser(rows[0]));
   } catch (err) {

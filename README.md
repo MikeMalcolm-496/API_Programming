@@ -119,7 +119,7 @@ Run the automated API tests from `my-project/server`:
 npm test
 ```
 
-These tests exercise the endpoint request/response behavior with a mocked database. `/health` tests the real database connection when the server is running, and an endpoint request against real records provides an end-to-end database check.
+These tests exercise the endpoint request/response behavior with a seeded database. `/health` tests the real database connection when the server is running, and an endpoint request against real records provides an end-to-end database check.
 
 ## Authentication
 

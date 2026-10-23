@@ -1,0 +1,18 @@
+{
+  "_readme": "Seed accounts for demos and testing. Passwords here are plain text ON PURPOSE so you can log in; the seeder stores only bcrypt hashes. 'schoolId' is saved in the users.student_id column (staff number for staff, admission number for students). 'strathbitesUserId' (students only) is saved in users.strathbites_user_id once the Strathbites migration has been run.",
+  "staffSignupCode": "STRATH-LF-STAFF-2026",
+  "users": [
+    { "id": "b0000000-0000-4000-8000-000000000001", "role": "admin",    "fullName": "Grace Wambui Njoroge",  "email": "grace.njoroge@strathmore.edu",  "password": "Admin@LF2026",    "schoolId": "ADM-0001" },
+    { "id": "b0000000-0000-4000-8000-000000000002", "role": "admin",    "fullName": "Daniel Otieno Ouma",    "email": "daniel.ouma@strathmore.edu",    "password": "Admin@LF2026",    "schoolId": "ADM-0002" },
+
+    { "id": "b0000000-0000-4000-8000-000000000011", "role": "security", "fullName": "Peter Kamau Mwangi",    "email": "peter.mwangi@strathmore.edu",   "password": "Security@LF2026", "schoolId": "SEC-1001" },
+    { "id": "b0000000-0000-4000-8000-000000000012", "role": "security", "fullName": "Faith Achieng Odhiambo","email": "faith.odhiambo@strathmore.edu", "password": "Security@LF2026", "schoolId": "SEC-1002" },
+    { "id": "b0000000-0000-4000-8000-000000000013", "role": "security", "fullName": "Joseph Kiprono Rotich", "email": "joseph.rotich@strathmore.edu",  "password": "Security@LF2026", "schoolId": "SEC-1003" },
+    { "id": "b0000000-0000-4000-8000-000000000014", "role": "security", "fullName": "Mercy Nyambura Kariuki","email": "mercy.kariuki@strathmore.edu",  "password": "Security@LF2026", "schoolId": "SEC-1004" },
+    { "id": "b0000000-0000-4000-8000-000000000015", "role": "security", "fullName": "Hassan Abdi Mohamed",   "email": "hassan.mohamed@strathmore.edu", "password": "Security@LF2026", "schoolId": "SEC-1005" },
+
+    { "id": "b0000000-0000-4000-8000-000000000021", "role": "student",  "fullName": "Brian Mutua Kioko",     "email": "brian.kioko@strathmore.edu",    "password": "Student@LF2026",  "schoolId": "182341", "strathbitesUserId": 3 },
+    { "id": "b0000000-0000-4000-8000-000000000022", "role": "student",  "fullName": "Wanjiru Akinyi Moraa",  "email": "wanjiru.moraa@strathmore.edu",  "password": "Student@LF2026",  "schoolId": "190877", "strathbitesUserId": 1 },
+    { "id": "b0000000-0000-4000-8000-000000000023", "role": "student",  "fullName": "Kevin Cheruiyot Langat","email": "kevin.langat@strathmore.edu",   "password": "Student@LF2026",  "schoolId": "201455", "strathbitesUserId": 2 }
+  ]
+}

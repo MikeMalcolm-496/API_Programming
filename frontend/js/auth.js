@@ -30,7 +30,11 @@
   if (registerForm) {
     const role = $('role');
     const staffGroup = $('staffCodeGroup');
-    const syncRole = () => { staffGroup.hidden = role.value === 'student'; };
+    const sbGroup = $('strathbitesGroup');
+    const syncRole = () => {
+      staffGroup.hidden = role.value === 'student';
+      if (sbGroup) sbGroup.hidden = role.value !== 'student';
+    };
     role.addEventListener('change', syncRole);
     syncRole();
 
@@ -56,6 +60,8 @@
             role: role.value,
             studentId: $('studentId').value || undefined,
             staffCode: role.value === 'student' ? undefined : $('staffCode').value,
+            strathbitesUserId: role.value === 'student' && $('strathbitesUserId') && $('strathbitesUserId').value
+              ? Number($('strathbitesUserId').value) : undefined,
           },
         });
         success.textContent = 'Account created. Redirecting to login...';

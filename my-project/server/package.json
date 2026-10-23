@@ -6,7 +6,13 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "seed": "node scripts/seed-data.js",
+    "seed:reset": "node scripts/seed-data.js --reset",
+    "seed:sql": "node scripts/seed-data.js --sql",
+    "strathbites": "node scripts/strathbites-cli.js",
+    "stub": "node partner-stub.js",
+    "apikey": "node scripts/api-keys.js"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +29,8 @@
     "pg": "^8.23.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "jest": "^30.5.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.3.1"
   }
 }

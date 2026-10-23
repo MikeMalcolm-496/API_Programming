@@ -1,0 +1,425 @@
+{
+  "info": {
+    "name": "Lost & Found - API Keys",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run top to bottom. Set baseUrl first. Step 1 logs in the seed admin and saves the token; step 2 creates a key and saves it in apiKey."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "apiKey",
+      "value": ""
+    },
+    {
+      "key": "keyId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Admin login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"grace.njoroge@strathmore.edu\",\n  \"password\": \"Admin@LF2026\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('adminToken', pm.response.json().token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Create API key (shown once)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/api-keys",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "api-keys"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Team 11 sync service\",\n  \"scopes\": [\n    \"items:read\",\n    \"items:batch\",\n    \"checks:write\",\n    \"claims:verify\"\n  ],\n  \"expiresInDays\": 90\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('apiKey', pm.response.json().apiKey);",
+              "pm.collectionVariables.set('keyId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. List keys (no secrets)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/api-keys",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "api-keys"
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Who am I (with key)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api-keys/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api-keys",
+            "me"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Batch lookup WITHOUT key -> 401",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/found-items/batch-lookup",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "found-items",
+            "batch-lookup"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"inventoryItemIds\": [\n    \"inv-5501\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Batch lookup WITH key -> 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/found-items/batch-lookup",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "found-items",
+            "batch-lookup"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"inventoryItemIds\": [\n    \"inv-5501\",\n    \"inv-5502\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Flagged check WITH key -> 201",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/flagged-checks",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "flagged-checks"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"foundItemId\": \"c0000000-0000-4000-8000-000000000002\",\n  \"inventoryItemId\": \"inv-5501\",\n  \"checkedBy\": \"team11-sync-service\",\n  \"outcome\": \"no_match\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Claim verify (Strathbites) WITH key",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/claims/verify?userId=3&locationId=cafe-3&lostDate=2026-10-20",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "claims",
+            "verify"
+          ],
+          "query": [
+            {
+              "key": "userId",
+              "value": "3"
+            },
+            {
+              "key": "locationId",
+              "value": "cafe-3"
+            },
+            {
+              "key": "lostDate",
+              "value": "2026-10-20"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "9. Public list, no key -> 200",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/found-items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "found-items"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Revoke key",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/api-keys/{{keyId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "api-keys",
+            "{{keyId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "11. Use revoked key -> 401",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api-keys/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api-keys",
+            "me"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -65,3 +65,22 @@ CREATE INDEX IF NOT EXISTS found_items_status_idx ON found_items(status);
 CREATE INDEX IF NOT EXISTS found_items_updated_at_idx ON found_items(updated_at);
 CREATE INDEX IF NOT EXISTS inquiries_found_item_id_idx ON inquiries(found_item_id);
 CREATE INDEX IF NOT EXISTS inquiry_messages_inquiry_id_idx ON inquiry_messages(inquiry_id);
+
+-- Strathbites integration: the claimant's user ID in the Strathbites system.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS strathbites_user_id integer;
+
+-- API keys (see migrations/003_api_keys.sql)
+CREATE TABLE IF NOT EXISTS api_keys (
+  id uuid PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
+  name varchar NOT NULL,
+  key_prefix varchar(16) NOT NULL,
+  key_hash char(64) NOT NULL UNIQUE,
+  scopes text[] NOT NULL DEFAULT ARRAY['items:read']::text[],
+  created_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  expires_at timestamptz,
+  revoked_at timestamptz,
+  last_used_at timestamptz,
+  usage_count bigint NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS api_keys_prefix_idx ON api_keys(key_prefix);

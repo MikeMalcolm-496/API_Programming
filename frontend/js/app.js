@@ -1,5 +1,8 @@
 const API_BASE_META = document.querySelector('meta[name="api-base"]');
-const API_BASE = (API_BASE_META?.content || 'https://api-programming.onrender.com').replace(/\/+$/, '');
+// Same rule as session.js: when the page is opened from localhost, use the local API.
+const API_BASE = (['localhost', '127.0.0.1'].includes(window.location.hostname)
+  ? `http://${window.location.hostname}:5000`
+  : (API_BASE_META?.content || 'https://api-programming.onrender.com')).replace(/\/+$/, '');
 
 const ITEM_STATUSES = new Set(['unclaimed', 'claimed', 'pending-verification']);
 const ITEM_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

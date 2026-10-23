@@ -153,6 +153,8 @@ paths:
 
   /found-items/batch-lookup:
     post:
+      security:
+        - ApiKeyAuth: []
       summary: >
         Check a batch of missing-inventory IDs against found items in a
         single request, for daily reconciliation. An inventory ID is matched
@@ -199,9 +201,17 @@ paths:
               example:
                 error: "invalid_request"
                 message: "inventoryItemIds must be a non-empty array of strings."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
 
   /flagged-checks:
     post:
+      security:
+        - ApiKeyAuth: []
       summary: >
         Record that a specific found item was checked against a missing
         inventory item, for audit-trail purposes.
@@ -248,8 +258,51 @@ paths:
               example:
                 error: "not_found"
                 message: "No found item exists with ID 7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
 
 components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: >
+        Issued by the Lost & Found admin (format lfk_live_...). Scopes: items:read,
+        items:batch (batch-lookup), checks:write (flagged-checks), claims:verify.
+        GET /found-items works without a key; if a key is sent it must be valid.
+  responses:
+    Unauthorized:
+      description: API key missing, invalid, revoked or expired.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "unauthorized"
+            message: "Missing API key. Send it in the X-API-Key header."
+    Forbidden:
+      description: The API key is valid but does not have the scope this endpoint needs.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "forbidden"
+            message: "This API key does not have the 'items:batch' scope."
+    RateLimited:
+      description: Too many requests for this API key in the current minute.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "rate_limited"
+            message: "Too many requests for this API key. Try again in a minute."
   schemas:
     FoundItem:
       type: object

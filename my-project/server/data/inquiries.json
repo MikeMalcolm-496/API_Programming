@@ -1,0 +1,19 @@
+{
+  "_readme": "Seed claims so the staff review queue and the Strathbites verification have something to work on.",
+  "inquiries": [
+    { "id": "d0000000-0000-4000-8000-000000000001", "itemId": "c0000000-0000-4000-8000-000000000001", "claimant": "brian.kioko@strathmore.edu", "status": "pending",
+      "claimDescription": "That is my violet Galaxy A54. The case has a mountain sticker and the crack is on the top-left. I had lunch at cafe-3 on 20 October around 1pm and left it on the table by the window. My lock screen is a photo of Mt Kenya.",
+      "messages": [
+        { "from": "peter.mwangi@strathmore.edu", "text": "Hi Brian, thanks. Please come to the Security Office with your student ID. We'll ask you to unlock the phone." },
+        { "from": "brian.kioko@strathmore.edu",  "text": "Thank you, I can come at 4pm today." }
+      ] },
+    { "id": "d0000000-0000-4000-8000-000000000002", "itemId": "c0000000-0000-4000-8000-000000000003", "claimant": "wanjiru.moraa@strathmore.edu", "status": "pending",
+      "claimDescription": "My student ID in a red lanyard. The holder also has my SACCO card. I paid for lunch at cafe-1 on 21 October and must have dropped it at the counter.",
+      "messages": [] },
+    { "id": "d0000000-0000-4000-8000-000000000003", "itemId": "c0000000-0000-4000-8000-000000000008", "claimant": "kevin.langat@strathmore.edu", "status": "approved",
+      "claimDescription": "Brown bi-fold wallet with loose stitching. It has my national ID and an Equity card.",
+      "messages": [
+        { "from": "joseph.rotich@strathmore.edu", "text": "ID matched. Wallet released on 18 October. Please sign the release book next time you pass by." }
+      ] }
+  ]
+}
