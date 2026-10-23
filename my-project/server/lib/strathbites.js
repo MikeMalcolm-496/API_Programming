@@ -1,22 +1,3 @@
-// ============================================================================
-//  STRATHBITES API CLIENT  (the producer we consume)
-//
-//  Every call our system makes to the Strathbites API goes through this file.
-//  If the lecturer asks "where do you call their API?", the answer is the
-//  callStrathbites() function below, used by the three endpoint functions:
-//
-//    getOrderFrequency(userId, locationId) -> GET {PARTNER_URL}/users/{id}/order-frequency?locationId=...
-//    getOrders(userId, 'timestamp')        -> GET {PARTNER_URL}/orders?userId=...&fields=timestamp
-//    getOrders(userId, 'location')         -> GET {PARTNER_URL}/orders?userId=...&fields=location
-//
-//  PARTNER_URL comes from .env (e.g. https://xxxx.trycloudflare.com/api) so the
-//  tunnel can change without a code change. PARTNER_API_KEY, if set, is sent as
-//  the X-API-Key header and is never printed.
-//
-//  Every call is logged to the server console like this:
-//    [Strathbites] -> GET https://xxxx.trycloudflare.com/api/orders?userId=3&fields=timestamp
-//    [Strathbites] <- 200 OK in 184 ms  (orders: 12)
-// ============================================================================
 
 const TIMEOUT_MS = Number(process.env.PARTNER_TIMEOUT_MS) || 8000;
 const LOCATION_RE = /\bcafe-\d+\b/i; // Strathbites location IDs look like cafe-1, cafe-2 ...

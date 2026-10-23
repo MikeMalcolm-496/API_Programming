@@ -53,7 +53,7 @@ app.get('/found-items', optionalApiKey('items:read'));            // public UI w
 app.get('/found-items/:itemId', optionalApiKey('items:read'));
 app.post('/found-items/batch-lookup', requireApiKey('items:batch'));
 app.post('/flagged-checks', requireApiKey('checks:write'));
-app.get('/claims/verify', staffOrApiKey('claims:verify'));        // personal order data: staff login or key
+app.get('/claims/verify', staffOrApiKey('claims:verify'));        
 app.use('/', require('./routes/apiKeys'));
 
 // Week 10: claim verification page + route (consumes the Strathbites API)
