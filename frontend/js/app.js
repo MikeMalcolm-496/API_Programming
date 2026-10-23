@@ -40,6 +40,7 @@ function renderItemCard(item) {
     const link = document.createElement('a');
     link.className = 'item-card item-card-link';
     link.href = `item-detail.html?id=${encodeURIComponent(item.itemId)}`;
+    link.dataset.category = item.category;
 
     const content = document.createElement('div');
     content.className = 'item-card-content';

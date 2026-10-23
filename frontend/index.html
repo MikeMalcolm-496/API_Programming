@@ -3,29 +3,52 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lost & Found - Strathmore University</title>
     <meta name="api-base" content="https://api-programming.onrender.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="css/style.css" />
+    <title>Lost &amp; Found - Strathmore University</title>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-brand">
-                <a href="index.html">Lost & Found</a>
-            </div>
+            <div class="nav-brand"><a href="index.html">Lost &amp; Found</a></div>
             <ul class="nav-links" id="navLinks">
                 <li><a href="index.html" class="active">Browse Items</a></li>
+                <li><a href="#how">How it works</a></li>
+                <li><a href="info.html">Contact &amp; Info</a></li>
             </ul>
         </div>
     </nav>
 
-    <main class="container">
-        
-        <section class="hero">
-            <h1>Lost Something? Found Something?</h1>
-            <p>Check our platform to see if your lost item has been found and submitted by security staff.</p>
-        </section>
+    <header class="lh">
+        <div class="wrap lh-grid">
+            <div class="lh-text">
+                <h1>Lost something on campus? Check here first.</h1>
+                <p>Security staff post every item handed in. Find yours, tell us what only the owner would know, and collect it from the security office.</p>
+                <div class="lh-actions">
+                    <a class="btn btn-secondary-solid" href="#browse">Browse found items</a>
+                    <a class="btn btn-ghost" href="#how">How claiming works</a>
+                </div>
+            </div>
+            <img class="lh-art" src="images/hero.svg" alt="A yellow FOUND tag surrounded by a backpack, keys and a phone" width="520" height="440" />
+        </div>
+    </header>
 
+    <section class="band" id="how">
+        <div class="wrap">
+            <h2 class="section-title">How claiming works</h2>
+            <ol class="steps">
+                <li><span class="step-n">1</span><h3>Find your item</h3><p>Filter by category or search a keyword. You don&rsquo;t need an account to browse.</p></li>
+                <li><span class="step-n">2</span><h3>Submit a claim</h3><p>Register as a student, then describe what makes the item yours: marks, contents, where you lost it.</p></li>
+                <li><span class="step-n">3</span><h3>Get verified</h3><p>Security staff review your claim and message you on the item page if they need more detail.</p></li>
+                <li><span class="step-n">4</span><h3>Collect it</h3><p>Once approved, pick the item up from the security office with your student ID.</p></li>
+            </ol>
+        </div>
+    </section>
+
+    <main class="container browse" id="browse">
+        <h2 class="section-title">Found items</h2>
         <section class="filters">
             <div class="filter-group">
                 <label for="categoryFilter">Category</label>
@@ -54,7 +77,6 @@
             </div>
             <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
         </section>
-
         <section class="items-grid" id="itemsGrid">
             <div class="loading-spinner" id="loadingSpinner" role="status" aria-live="polite">
                 <div class="spinner"></div>
@@ -64,9 +86,52 @@
         </section>
     </main>
 
-    <footer class="footer">
-        <p>&copy; 2026 Strathmore University - Lost & Found Platform</p>
+    <section class="band band-split">
+        <div class="wrap split">
+            <img src="images/campus.svg" alt="Illustration of a university building" width="480" height="360" loading="lazy" />
+            <div>
+                <h2 class="section-title">Can&rsquo;t see your item?</h2>
+                <p>Items appear as soon as security staff log them, so check back in a day or two. If it still isn&rsquo;t listed, visit the security office or send us a message and we&rsquo;ll look for you.</p>
+                <a class="btn btn-primary" href="info.html">Contact the security office</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="staff-strip">
+        <div class="wrap">
+            <p><strong>Security staff?</strong> Log in to post found items and review claims.</p>
+            <a class="btn btn-dark" href="login.html">Staff login</a>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="wrap footer-grid">
+            <div>
+                <strong class="footer-brand">Lost &amp; Found</strong>
+                <p>Strathmore University&rsquo;s place to find what was handed in to security.</p>
+            </div>
+            <div>
+                <h4>Pages</h4>
+                <ul>
+                    <li><a href="index.html">Browse items</a></li>
+                    <li><a href="info.html">Contact &amp; info</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Security office</h4>
+                <!-- EDIT: replace with your real details -->
+                <ul>
+                    <li>Strathmore University, Madaraka Estate, Nairobi</li>
+                    <li><a href="mailto:lostandfound@strathmore.edu">lostandfound@strathmore.edu</a></li>
+                    <li>+254 700 000 000</li>
+                </ul>
+            </div>
+        </div>
+        <p class="footer-legal">&copy; 2026 Strathmore University &ndash; Lost &amp; Found Platform</p>
     </footer>
+    <script src="js/session.js" defer></script>
     <script src="js/app.js" defer></script>
 </body>
 </html>

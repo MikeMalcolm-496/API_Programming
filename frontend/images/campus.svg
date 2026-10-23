@@ -1,0 +1,17 @@
+<svg viewBox="0 0 480 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of a university building on campus">
+  <rect width="480" height="360" rx="24" fill="#e4e9ff"/>
+  <circle cx="390" cy="76" r="34" fill="#ffc233"/>
+  <rect x="0" y="290" width="480" height="70" fill="#17a673"/>
+  <rect x="0" y="290" width="480" height="8" fill="#12875e"/>
+  <rect x="110" y="120" width="260" height="170" fill="#0e1b3d"/>
+  <rect x="90" y="104" width="300" height="22" fill="#2347d6"/>
+  <rect x="215" y="215" width="50" height="75" rx="4" fill="#ffc233"/>
+  <g fill="#9fb3ff">
+    <rect x="130" y="144" width="36" height="34" rx="3"/><rect x="186" y="144" width="36" height="34" rx="3"/>
+    <rect x="258" y="144" width="36" height="34" rx="3"/><rect x="314" y="144" width="36" height="34" rx="3"/>
+    <rect x="130" y="204" width="36" height="34" rx="3"/><rect x="314" y="204" width="36" height="34" rx="3"/>
+  </g>
+  <rect x="236" y="60" width="8" height="46" fill="#0e1b3d"/><path d="M244 62h42l-10 12 10 12h-42z" fill="#ff5a4e"/>
+  <circle cx="52" cy="262" r="30" fill="#12875e"/><rect x="48" y="270" width="8" height="30" fill="#0e1b3d"/>
+  <circle cx="432" cy="266" r="26" fill="#12875e"/><rect x="428" y="272" width="8" height="26" fill="#0e1b3d"/>
+</svg>

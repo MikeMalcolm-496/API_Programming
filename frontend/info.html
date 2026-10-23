@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="api-base" content="https://api-programming.onrender.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Contact &amp; Info - Lost &amp; Found</title>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand"><a href="index.html">Lost &amp; Found</a></div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Browse Items</a></li>
+                <li><a href="info.html" class="active">Contact &amp; Info</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="lh lh-small">
+        <div class="wrap">
+            <h1>Contact &amp; info</h1>
+            <p>Questions about a lost item, a claim, or posting found items? Reach the security office here.</p>
+        </div>
+    </header>
+
+    <section class="band">
+        <div class="wrap split">
+            <div>
+                <h2 class="section-title">About the platform</h2>
+                <p>Lost &amp; Found is run by Strathmore University&rsquo;s security staff. When someone hands in an item, staff log where and when it was found. Students can then search the list and claim what&rsquo;s theirs.</p>
+                <p>To protect owners, listings show the category, place and description but keep identifying details back. That is why a claim asks you to describe the item yourself.</p>
+            </div>
+            <img src="images/campus.svg" alt="Illustration of a university building" width="480" height="360" loading="lazy" />
+        </div>
+    </section>
+
+    <section class="band band-tint">
+        <div class="wrap">
+            <h2 class="section-title">Get in touch</h2>
+            <!-- EDIT: replace the placeholder details below with the real ones -->
+            <div class="contact-grid">
+                <div class="contact-card"><h3>Visit</h3><p>Security Office<br>Strathmore University, Madaraka Estate, Nairobi</p></div>
+                <div class="contact-card"><h3>Email</h3><p><a href="mailto:lostandfound@strathmore.edu">lostandfound@strathmore.edu</a></p></div>
+                <div class="contact-card"><h3>Call</h3><p>+254 700 000 000</p></div>
+                <div class="contact-card"><h3>Office hours</h3><p>Monday to Friday<br>8:00 am &ndash; 5:00 pm</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="wrap split split-form">
+            <div>
+                <h2 class="section-title">Send us a message</h2>
+                <p>This opens your email app with your message ready to send.</p>
+                <form id="contactForm" class="form-card">
+                    <div class="form-group"><label for="cName">Your name</label><input type="text" id="cName" required /></div>
+                    <div class="form-group"><label for="cEmail">Your email</label><input type="email" id="cEmail" required /></div>
+                    <div class="form-group"><label for="cMsg">Message</label><textarea id="cMsg" rows="5" placeholder="Describe the item and where you think you lost it" required></textarea></div>
+                    <button type="submit" class="btn btn-primary">Send message</button>
+                </form>
+            </div>
+            <div>
+                <h2 class="section-title">Common questions</h2>
+                <div class="faq">
+                    <details><summary>Do I need an account to browse?</summary><p>No. Anyone can browse. You only need a student account to submit a claim.</p></details>
+                    <details><summary>What should I write in my claim?</summary><p>Anything only the owner would know: brand, colour, marks or damage, what&rsquo;s inside, and where you last had it.</p></details>
+                    <details><summary>My claim was rejected. What now?</summary><p>You can submit a new claim with more detail. Staff may also message you on the item page.</p></details>
+                    <details><summary>My item isn&rsquo;t listed.</summary><p>Items are added as staff receive them. Check back soon, or contact the security office using the details above.</p></details>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="wrap footer-grid">
+            <div>
+                <strong class="footer-brand">Lost &amp; Found</strong>
+                <p>Strathmore University&rsquo;s place to find what was handed in to security.</p>
+            </div>
+            <div>
+                <h4>Pages</h4>
+                <ul>
+                    <li><a href="index.html">Browse items</a></li>
+                    <li><a href="info.html">Contact &amp; info</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Security office</h4>
+                <!-- EDIT: replace with your real details -->
+                <ul>
+                    <li>Strathmore University, Madaraka Estate, Nairobi</li>
+                    <li><a href="mailto:lostandfound@strathmore.edu">lostandfound@strathmore.edu</a></li>
+                    <li>+254 700 000 000</li>
+                </ul>
+            </div>
+        </div>
+        <p class="footer-legal">&copy; 2026 Strathmore University &ndash; Lost &amp; Found Platform</p>
+    </footer>
+    <script src="js/session.js" defer></script>
+    <script src="js/info.js" defer></script>
+</body>
+</html>
