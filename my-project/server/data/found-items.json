@@ -1,35 +1,205 @@
 {
   "_readme": "15 seed found items. 'location' strings that start with cafe-1/cafe-2/cafe-3 match Strathbites location IDs so claims on them can be verified against Strathbites order history. 'postedBy' is the email of the staff member who logged the item.",
   "items": [
-    { "id": "c0000000-0000-4000-8000-000000000001", "title": "Samsung Galaxy A54 phone", "category": "electronics", "location": "cafe-3 (Student Centre Cafeteria), table near the window", "dateFound": "2026-10-20", "status": "pending-verification", "postedBy": "peter.mwangi@strathmore.edu",
-      "description": "Samsung Galaxy A54, Awesome Violet (light purple) colour, clear silicone case with a sticker of a mountain on the back. Screen has a small crack in the top-left corner. Phone is locked and was at about 40% battery. Handed in by cafeteria cleaning staff at 13:20. Stored in the Security Office safe, shelf A." },
-    { "id": "c0000000-0000-4000-8000-000000000002", "title": "HP EliteBook laptop charger", "category": "electronics", "location": "Library, 2nd Floor Front Desk", "dateFound": "2026-10-18", "status": "unclaimed", "postedBy": "faith.odhiambo@strathmore.edu",
-      "description": "HP 65W laptop charger with blue-tip connector, black. The cable has white electrical tape wrapped near the brick and the initials 'J.K.' written on the tape in marker. Found plugged into socket 14 at the silent study area. Stored at Security Office, drawer 2." },
-    { "id": "c0000000-0000-4000-8000-000000000003", "title": "Strathmore student ID card", "category": "documents", "location": "cafe-1 (Main Cafeteria), payment counter", "dateFound": "2026-10-21", "status": "pending-verification", "postedBy": "joseph.rotich@strathmore.edu",
-      "description": "Strathmore University student ID card in a red lanyard with a plastic holder. Holder also contains a matatu SACCO loyalty card. Name and admission number visible on card (withheld here for privacy; claimant must state them). Found by the cashier after the lunch rush. Stored at Security Office, documents tray." },
-    { "id": "c0000000-0000-4000-8000-000000000004", "title": "Black JanSport backpack", "category": "personal-items", "location": "Sports Complex, changing rooms (men's)", "dateFound": "2026-10-15", "status": "unclaimed", "postedBy": "mercy.kariuki@strathmore.edu",
-      "description": "Black JanSport SuperBreak backpack, front pocket zip pull replaced with a green paperclip. Contains a grey Strathmore hoodie, a Casio fx-991ES calculator, two exercise books labelled 'Data Structures' and a half-full 750ml water bottle. No wallet or ID inside. Stored in Security Office, large-items cabinet." },
-    { "id": "c0000000-0000-4000-8000-000000000005", "title": "Toyota car key with blue keychain", "category": "keys", "location": "Parking Lot B, near the exit barrier", "dateFound": "2026-10-12", "status": "unclaimed", "postedBy": "hassan.mohamed@strathmore.edu",
-      "description": "Single Toyota remote-lock car key (two buttons, worn rubber), on a blue fabric keychain printed 'Nairobi Marathon 2025'. Also attached: a small brass house key and a supermarket loyalty tag. Found on the ground by the exit barrier during the evening patrol. Stored in Security Office key box, hook 7." },
-    { "id": "c0000000-0000-4000-8000-000000000006", "title": "Navy blue Strathmore hoodie", "category": "clothing", "location": "Auditorium, row F", "dateFound": "2026-10-09", "status": "unclaimed", "postedBy": "peter.mwangi@strathmore.edu",
-      "description": "Navy blue Strathmore University pullover hoodie, size L, white logo on the chest. Left sleeve has a faded paint stain and the drawstring is missing. Left on seat F12 after the Friday guest lecture. Stored in Security Office, clothing rack." },
-    { "id": "c0000000-0000-4000-8000-000000000007", "title": "Apple AirPods Pro (2nd gen) case", "category": "electronics", "location": "cafe-2 (Business School Cafe), counter by the coffee machine", "dateFound": "2026-10-19", "status": "unclaimed", "postedBy": "faith.odhiambo@strathmore.edu",
-      "description": "White AirPods Pro charging case with both earbuds inside. Case is in a black leather-look cover with a gold carabiner clip. Engraving on the case reads 'K.L.' Found by the barista at 08:40. Stored in Security Office safe, shelf A." },
-    { "id": "c0000000-0000-4000-8000-000000000008", "title": "Brown leather wallet", "category": "personal-items", "location": "STMB Building, 3rd Floor washrooms", "dateFound": "2026-10-17", "status": "claimed", "postedBy": "joseph.rotich@strathmore.edu",
-      "description": "Brown bi-fold leather wallet, stitching coming loose on one edge. Contains a national ID, an Equity bank card, a library card and a small amount of cash (counted and sealed in an envelope, amount recorded in the security log). Claimed and released after ID check." },
-    { "id": "c0000000-0000-4000-8000-000000000009", "title": "Scientific calculator Casio fx-991EX", "category": "electronics", "location": "Library, Ground Floor group discussion room 3", "dateFound": "2026-10-14", "status": "unclaimed", "postedBy": "mercy.kariuki@strathmore.edu",
-      "description": "Casio fx-991EX ClassWiz calculator, black, with slide-on hard cover. Name scratched off the back; a yellow highlighter mark on the cover. Battery working. Stored at Security Office, drawer 2." },
-    { "id": "c0000000-0000-4000-8000-000000000010", "title": "Prescription glasses in red case", "category": "personal-items", "location": "cafe-3 (Student Centre Cafeteria), outdoor seating", "dateFound": "2026-10-22", "status": "unclaimed", "postedBy": "hassan.mohamed@strathmore.edu",
-      "description": "Black rectangular prescription glasses (Ray-Ban style frame) inside a hard red clamshell case from an optician in Westlands. A microfibre cloth is folded inside. Found on bench 2 of the outdoor seating at 16:05. Stored in Security Office, shelf B." },
-    { "id": "c0000000-0000-4000-8000-000000000011", "title": "National ID card", "category": "documents", "location": "Admin Block Reception", "dateFound": "2026-10-11", "status": "claimed", "postedBy": "grace.njoroge@strathmore.edu",
-      "description": "Kenyan national ID card, handed to the reception desk by a visitor. Details withheld for privacy; the owner must present a second form of identification. Released to owner after verification by the Admin office." },
-    { "id": "c0000000-0000-4000-8000-000000000012", "title": "Silver Hydro Flask water bottle", "category": "other", "location": "Sports Complex, basketball court bench", "dateFound": "2026-10-16", "status": "unclaimed", "postedBy": "peter.mwangi@strathmore.edu",
-      "description": "Silver 32oz Hydro Flask with a black straw lid. Dented at the bottom and covered with stickers: a Kenyan flag, 'Code. Sleep. Repeat.' and a Strathmore Blades sticker. Found after evening basketball training. Stored in Security Office, shelf B." },
-    { "id": "c0000000-0000-4000-8000-000000000013", "title": "Set of three keys on red ring", "category": "keys", "location": "Phase 1 Lecture Room 12", "dateFound": "2026-10-13", "status": "unclaimed", "postedBy": "faith.odhiambo@strathmore.edu",
-      "description": "Three keys on a red metal split ring: one Yale padlock key, one long mortice key and one small mailbox key. A plastic tag reads 'Hostel B-14'. Found under a desk in row 3 after the 10:00 class. Stored in Security Office key box, hook 3." },
-    { "id": "c0000000-0000-4000-8000-000000000014", "title": "Beige trench coat", "category": "clothing", "location": "cafe-1 (Main Cafeteria), coat hooks by the entrance", "dateFound": "2026-10-10", "status": "unclaimed", "postedBy": "daniel.ouma@strathmore.edu",
-      "description": "Women's beige trench coat, size M, belt included, from Mr Price. A folded bus ticket and a black hair tie in the right pocket. Left on the coat hooks over the weekend. Stored in Security Office, clothing rack." },
-    { "id": "c0000000-0000-4000-8000-000000000015", "title": "Kindle Paperwhite e-reader", "category": "electronics", "location": "Library, 3rd Floor quiet zone", "dateFound": "2026-10-21", "status": "unclaimed", "postedBy": "joseph.rotich@strathmore.edu",
-      "description": "Amazon Kindle Paperwhite (11th gen) in a forest green fabric cover. Lock screen shows a photo of a golden retriever. Device is password protected. Found at desk Q-27 at closing time. Stored in Security Office safe, shelf A." }
+    {
+      "id": "c0000000-0000-4000-8000-000000000001",
+      "title": "Samsung Galaxy A54 phone",
+      "category": "electronics",
+      "location": "cafe-3 (Student Centre Cafeteria), table near the window",
+      "dateFound": "2026-10-20",
+      "status": "pending-verification",
+      "postedBy": "peter.mwangi@strathmore.edu",
+      "description": "Samsung Galaxy A54, Awesome Violet (light purple) colour, clear silicone case with a sticker of a mountain on the back. Screen has a small crack in the top-left corner. Phone is locked and was at about 40% battery. Handed in by cafeteria cleaning staff at 13:20. Stored in the Security Office safe, shelf A."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000002",
+      "title": "HP EliteBook laptop charger",
+      "category": "electronics",
+      "location": "Library, 2nd Floor Front Desk",
+      "dateFound": "2026-10-18",
+      "status": "unclaimed",
+      "postedBy": "faith.odhiambo@strathmore.edu",
+      "description": "HP 65W laptop charger with blue-tip connector, black. The cable has white electrical tape wrapped near the brick and the initials 'J.K.' written on the tape in marker. Found plugged into socket 14 at the silent study area. Stored at Security Office, drawer 2."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000003",
+      "title": "Strathmore student ID card",
+      "category": "documents",
+      "location": "cafe-1 (Main Cafeteria), payment counter",
+      "dateFound": "2026-10-21",
+      "status": "pending-verification",
+      "postedBy": "joseph.rotich@strathmore.edu",
+      "description": "Strathmore University student ID card in a red lanyard with a plastic holder. Holder also contains a matatu SACCO loyalty card. Name and admission number visible on card (withheld here for privacy; claimant must state them). Found by the cashier after the lunch rush. Stored at Security Office, documents tray."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000004",
+      "title": "Black JanSport backpack",
+      "category": "personal-items",
+      "location": "Sports Complex, changing rooms (men's)",
+      "dateFound": "2026-10-15",
+      "status": "unclaimed",
+      "postedBy": "mercy.kariuki@strathmore.edu",
+      "description": "Black JanSport SuperBreak backpack, front pocket zip pull replaced with a green paperclip. Contains a grey Strathmore hoodie, a Casio fx-991ES calculator, two exercise books labelled 'Data Structures' and a half-full 750ml water bottle. No wallet or ID inside. Stored in Security Office, large-items cabinet."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000005",
+      "title": "Toyota car key with blue keychain",
+      "category": "keys",
+      "location": "Parking Lot B, near the exit barrier",
+      "dateFound": "2026-10-12",
+      "status": "unclaimed",
+      "postedBy": "hassan.mohamed@strathmore.edu",
+      "description": "Single Toyota remote-lock car key (two buttons, worn rubber), on a blue fabric keychain printed 'Nairobi Marathon 2025'. Also attached: a small brass house key and a supermarket loyalty tag. Found on the ground by the exit barrier during the evening patrol. Stored in Security Office key box, hook 7."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000006",
+      "title": "Navy blue Strathmore hoodie",
+      "category": "clothing",
+      "location": "Auditorium, row F",
+      "dateFound": "2026-10-09",
+      "status": "unclaimed",
+      "postedBy": "peter.mwangi@strathmore.edu",
+      "description": "Navy blue Strathmore University pullover hoodie, size L, white logo on the chest. Left sleeve has a faded paint stain and the drawstring is missing. Left on seat F12 after the Friday guest lecture. Stored in Security Office, clothing rack."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000007",
+      "title": "Apple AirPods Pro (2nd gen) case",
+      "category": "electronics",
+      "location": "cafe-2 (Business School Cafe), counter by the coffee machine",
+      "dateFound": "2026-10-19",
+      "status": "unclaimed",
+      "postedBy": "faith.odhiambo@strathmore.edu",
+      "description": "White AirPods Pro charging case with both earbuds inside. Case is in a black leather-look cover with a gold carabiner clip. Engraving on the case reads 'K.L.' Found by the barista at 08:40. Stored in Security Office safe, shelf A."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000008",
+      "title": "Brown leather wallet",
+      "category": "personal-items",
+      "location": "STMB Building, 3rd Floor washrooms",
+      "dateFound": "2026-10-17",
+      "status": "claimed",
+      "postedBy": "joseph.rotich@strathmore.edu",
+      "description": "Brown bi-fold leather wallet, stitching coming loose on one edge. Contains a national ID, an Equity bank card, a library card and a small amount of cash (counted and sealed in an envelope, amount recorded in the security log). Claimed and released after ID check."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000009",
+      "title": "Scientific calculator Casio fx-991EX",
+      "category": "electronics",
+      "location": "Library, Ground Floor group discussion room 3",
+      "dateFound": "2026-10-14",
+      "status": "unclaimed",
+      "postedBy": "mercy.kariuki@strathmore.edu",
+      "description": "Casio fx-991EX ClassWiz calculator, black, with slide-on hard cover. Name scratched off the back; a yellow highlighter mark on the cover. Battery working. Stored at Security Office, drawer 2."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000010",
+      "title": "Prescription glasses in red case",
+      "category": "personal-items",
+      "location": "cafe-3 (Student Centre Cafeteria), outdoor seating",
+      "dateFound": "2026-10-22",
+      "status": "unclaimed",
+      "postedBy": "hassan.mohamed@strathmore.edu",
+      "description": "Black rectangular prescription glasses (Ray-Ban style frame) inside a hard red clamshell case from an optician in Westlands. A microfibre cloth is folded inside. Found on bench 2 of the outdoor seating at 16:05. Stored in Security Office, shelf B."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000011",
+      "title": "National ID card",
+      "category": "documents",
+      "location": "Admin Block Reception",
+      "dateFound": "2026-10-11",
+      "status": "claimed",
+      "postedBy": "grace.njoroge@strathmore.edu",
+      "description": "Kenyan national ID card, handed to the reception desk by a visitor. Details withheld for privacy; the owner must present a second form of identification. Released to owner after verification by the Admin office."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000012",
+      "title": "Silver Hydro Flask water bottle",
+      "category": "other",
+      "location": "Sports Complex, basketball court bench",
+      "dateFound": "2026-10-16",
+      "status": "unclaimed",
+      "postedBy": "peter.mwangi@strathmore.edu",
+      "description": "Silver 32oz Hydro Flask with a black straw lid. Dented at the bottom and covered with stickers: a Kenyan flag, 'Code. Sleep. Repeat.' and a Strathmore Blades sticker. Found after evening basketball training. Stored in Security Office, shelf B."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000013",
+      "title": "Set of three keys on red ring",
+      "category": "keys",
+      "location": "Phase 1 Lecture Room 12",
+      "dateFound": "2026-10-13",
+      "status": "unclaimed",
+      "postedBy": "faith.odhiambo@strathmore.edu",
+      "description": "Three keys on a red metal split ring: one Yale padlock key, one long mortice key and one small mailbox key. A plastic tag reads 'Hostel B-14'. Found under a desk in row 3 after the 10:00 class. Stored in Security Office key box, hook 3."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000014",
+      "title": "Beige trench coat",
+      "category": "clothing",
+      "location": "cafe-1 (Main Cafeteria), coat hooks by the entrance",
+      "dateFound": "2026-10-10",
+      "status": "unclaimed",
+      "postedBy": "daniel.ouma@strathmore.edu",
+      "description": "Women's beige trench coat, size M, belt included, from Mr Price. A folded bus ticket and a black hair tie in the right pocket. Left on the coat hooks over the weekend. Stored in Security Office, clothing rack."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000015",
+      "title": "Kindle Paperwhite e-reader",
+      "category": "electronics",
+      "location": "Library, 3rd Floor quiet zone",
+      "dateFound": "2026-10-21",
+      "status": "unclaimed",
+      "postedBy": "joseph.rotich@strathmore.edu",
+      "description": "Amazon Kindle Paperwhite (11th gen) in a forest green fabric cover. Lock screen shows a photo of a golden retriever. Device is password protected. Found at desk Q-27 at closing time. Stored in Security Office safe, shelf A."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000016",
+      "title": "Blue Nike gym bag",
+      "category": "personal-items",
+      "location": "Sports Complex gym entrance bench",
+      "dateFound": "2026-10-19",
+      "status": "unclaimed",
+      "postedBy": "hassan.mohamed@strathmore.edu",
+      "description": "Navy blue Nike duffel bag with a white swoosh. Contains a pair of size 42 running shoes, a towel and a water bottle. Zip is broken on the side pocket. Stored in the Security Office, rack 2."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000017",
+      "title": "Silver Lenovo ThinkPad laptop",
+      "category": "electronics",
+      "location": "Library, 1st Floor study carrel 14",
+      "dateFound": "2026-10-22",
+      "status": "pending-verification",
+      "postedBy": "faith.odhiambo@strathmore.edu",
+      "description": "Silver Lenovo ThinkPad E14 with a green sticker on the lid and a scratch near the trackpad. Password protected. No charger. Handed in at the library desk at 18:05. Stored in the Security Office safe, shelf B."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000018",
+      "title": "Set of lecture notes in a green folder",
+      "category": "documents",
+      "location": "cafe-2 (Business School Cafe), corner table",
+      "dateFound": "2026-10-17",
+      "status": "unclaimed",
+      "postedBy": "mercy.kariuki@strathmore.edu",
+      "description": "Green plastic folder with handwritten Data Structures and Networking notes. First page has the name initials J.K. Around 40 pages. Stored in the Security Office, drawer 3."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000019",
+      "title": "Black umbrella with wooden handle",
+      "category": "other",
+      "location": "Phase 2 Lecture Hall entrance",
+      "dateFound": "2026-10-08",
+      "status": "unclaimed",
+      "postedBy": "joseph.rotich@strathmore.edu",
+      "description": "Large black automatic umbrella with a curved wooden handle and a brown strap. One rib is slightly bent. Stored in the Security Office, umbrella stand."
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000020",
+      "title": "Gold-coloured wristwatch",
+      "category": "personal-items",
+      "location": "cafe-1 (Main Cafeteria), washroom sink",
+      "dateFound": "2026-10-21",
+      "status": "unclaimed",
+      "postedBy": "peter.mwangi@strathmore.edu",
+      "description": "Gold-coloured analogue watch with a brown leather strap and a small crack on the glass. Engraved on the back with the letters D.M. Stored in the Security Office safe, shelf A."
+    }
   ]
 }
