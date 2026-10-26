@@ -134,7 +134,7 @@
   loadClaims();
 
   // Prefill cafeteria and date from the item record.
-  LF.api(`/found-items/${encodeURIComponent(itemId)}`).then((item) => {
+  LF.api(`/web/found-items/${encodeURIComponent(itemId)}`).then((item) => {
     const cafe = extractCafe(item.location);
     if (cafe) locInput.value = cafe;
     if (item.dateFound) dateInput.value = String(item.dateFound).slice(0, 10);

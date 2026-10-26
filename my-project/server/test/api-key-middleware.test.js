@@ -2,10 +2,16 @@ jest.mock('../lib/apiKeys', () => ({
   verifyKey: jest.fn(),
 }));
 
+jest.mock('../db', () => ({
+  query: jest.fn(),
+  end: jest.fn(),
+}));
+
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const request = require('supertest');
 const { verifyKey } = require('../lib/apiKeys');
+const db = require('../db');
 const { requireApiKey, optionalApiKey, staffOrApiKey } = require('../middleware/apiKey');
 const server = require('../index');
 
@@ -22,6 +28,7 @@ describe('API-key middleware', () => {
     process.env.API_KEY_MODE = 'required';
     process.env.JWT_SECRET = 'test-secret';
     verifyKey.mockReset();
+    db.query.mockResolvedValue({ rows: [] });
   });
 
   it('requires a key for protected routes', async () => {
@@ -43,6 +50,21 @@ describe('API-key middleware', () => {
     expect(response.status).toBe(401);
     expect(response.body.error).toBe('unauthorized');
     expect(response.body.message).toMatch(/API key required/);
+  });
+
+  it('serves the browser-facing item list without exposing an API key', async () => {
+    const response = await request(server).get('/web/found-items');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+    expect(verifyKey).not.toHaveBeenCalled();
+  });
+
+  it('serves browser-facing item details without exposing an API key', async () => {
+    const response = await request(server)
+      .get('/web/found-items/00000000-0000-4000-8000-000000000000');
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe('not_found');
+    expect(verifyKey).not.toHaveBeenCalled();
   });
 
   it('allows public routes without a key', async () => {

@@ -8,7 +8,7 @@ const router = express.Router();
 const OUTCOMES = ['match', 'no_match', 'needs_review'];
 const DATE_TIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/i;
 
-router.get('/found-items', async (req, res) => {
+async function listFoundItems(req, res) {
   try {
     const { category, keyword, updatedSince } = req.query;
     if (category !== undefined && !CATEGORIES.includes(category)) {
@@ -44,9 +44,9 @@ router.get('/found-items', async (req, res) => {
   } catch (err) {
     return serverError(res, err);
   }
-});
+}
 
-router.get('/found-items/:itemId', async (req, res) => {
+async function getFoundItem(req, res) {
   try {
     const { itemId } = req.params;
     if (!UUID_RE.test(itemId)) {
@@ -63,7 +63,14 @@ router.get('/found-items/:itemId', async (req, res) => {
   } catch (err) {
     return serverError(res, err);
   }
-});
+}
+
+router.get('/found-items', listFoundItems);
+router.get('/found-items/:itemId', getFoundItem);
+
+// Browser-facing read-only proxy routes; never expose a shared API key to clients.
+router.get('/web/found-items', listFoundItems);
+router.get('/web/found-items/:itemId', getFoundItem);
 
 router.post('/found-items/batch-lookup', async (req, res) => {
   try {

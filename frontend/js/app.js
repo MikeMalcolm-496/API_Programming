@@ -96,7 +96,7 @@ function initializeItemList() {
 
         try {
             const query = params.size ? `?${params.toString()}` : '';
-            const items = await requestJson(`/found-items${query}`);
+            const items = await requestJson(`/web/found-items${query}`);
             if (requestId !== latestListRequest) {
                 return;
             }
@@ -157,7 +157,7 @@ async function initializeItemDetail() {
     }
 
     try {
-        const item = await requestJson(`/found-items/${encodeURIComponent(itemId)}`);
+        const item = await requestJson(`/web/found-items/${encodeURIComponent(itemId)}`);
         document.querySelector('#itemId').textContent = item.itemId;
         document.querySelector('#itemCategory').textContent = formatCategory(item.category);
         document.querySelector('#itemLocation').textContent = item.location;
