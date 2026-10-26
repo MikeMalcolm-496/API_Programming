@@ -1,4 +1,4 @@
-
+﻿
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -126,7 +126,7 @@ router.post('/register', async (req, res) => {
           res,
           409,
           'conflict',
-          'A user with this email already exists.'
+          'Could not create account.'
         );
       }
 
@@ -274,3 +274,4 @@ router.patch('/me', authenticate, async (req, res) => {
 });
 
 module.exports = router;
+
