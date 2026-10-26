@@ -1,5 +1,5 @@
 const WINDOW_MS = 60 * 1000;
-const DEFAULT_LIMIT = 60;
+const DEFAULT_LIMIT = 15;
 
 function limitPerMinute() {
   const n = Number(process.env.RATE_LIMIT_PER_MINUTE);
