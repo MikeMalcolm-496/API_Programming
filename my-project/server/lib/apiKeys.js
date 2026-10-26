@@ -267,4 +267,3 @@ module.exports = {
   verifyKey,
   publicKey,
 };
-

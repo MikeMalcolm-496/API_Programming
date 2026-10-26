@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const request = require('supertest');
 const { verifyKey } = require('../lib/apiKeys');
 const { requireApiKey, optionalApiKey, staffOrApiKey } = require('../middleware/apiKey');
+const server = require('../index');
 
 function appWith(middleware) {
   const app = express();
@@ -26,8 +27,22 @@ describe('API-key middleware', () => {
   it('requires a key for protected routes', async () => {
     const response = await request(appWith(requireApiKey('items:batch'))).get('/resource');
     expect(response.status).toBe(401);
-    expect(response.body.error).toMatch(/API key required/);
+    expect(response.body.error).toBe('unauthorized');
+    expect(response.body.message).toMatch(/API key required/);
     expect(verifyKey).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['GET', '/health'],
+    ['GET', '/found-items'],
+    ['GET', '/found-items/00000000-0000-4000-8000-000000000000'],
+    ['POST', '/found-items/batch-lookup'],
+    ['POST', '/flagged-checks'],
+  ])('requires an API key for documented endpoint %s %s', async (method, endpoint) => {
+    const response = await request(server)[method.toLowerCase()](endpoint);
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe('unauthorized');
+    expect(response.body.message).toMatch(/API key required/);
   });
 
   it('allows public routes without a key', async () => {

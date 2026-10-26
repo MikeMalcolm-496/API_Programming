@@ -33,7 +33,15 @@ app.get('/openapi.yaml', (req, res) => {
   res.sendFile(path.join(__dirname, 'openapi.yaml'));
 });
 
-app.get('/health', async (req, res) => {
+// ---- API keys (machine-to-machine access) ----
+// Which routes need a key is decided HERE, in one place, so it is easy to see.
+const { requireApiKey, staffOrApiKey } = require('./middleware/apiKey');
+const { rateLimitPerKey } = require('./middleware/rateLimit');
+if ((process.env.API_KEY_MODE || 'required').toLowerCase() === 'off') {
+  console.warn('[api-key] API_KEY_MODE=off: API keys are NOT being checked.');
+}
+
+app.get('/health', requireApiKey(), rateLimitPerKey, async (req, res) => {
   try {
     await db.query('SELECT 1');
     return res.json({ status: 'ok', database: 'connected' });
@@ -43,15 +51,8 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// ---- API keys (machine-to-machine access) ----
-// Which routes need a key is decided HERE, in one place, so it is easy to see.
-const { requireApiKey, optionalApiKey, staffOrApiKey } = require('./middleware/apiKey');
-const { rateLimitPerKey } = require('./middleware/rateLimit');
-if ((process.env.API_KEY_MODE || 'required').toLowerCase() === 'off') {
-  console.warn('[api-key] API_KEY_MODE=off: API keys are NOT being checked.');
-}
-app.get('/found-items', optionalApiKey('items:read'), rateLimitPerKey);
-app.get('/found-items/:itemId', optionalApiKey('items:read'), rateLimitPerKey);
+app.get('/found-items', requireApiKey('items:read'), rateLimitPerKey);
+app.get('/found-items/:itemId', requireApiKey('items:read'), rateLimitPerKey);
 app.post('/found-items/batch-lookup', requireApiKey('items:batch'), rateLimitPerKey);
 app.post('/flagged-checks', requireApiKey('checks:write'), rateLimitPerKey);
 app.get('/claims/verify', staffOrApiKey('claims:verify'), rateLimitPerKey);       

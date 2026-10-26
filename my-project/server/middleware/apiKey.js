@@ -15,7 +15,10 @@ function sendKeyError(res, failure) {
   if (failure.status === 401 && failure.reason !== 'required') {
     console.warn(`[api-key] rejected (${failure.reason})`);
   }
-  return res.status(failure.status).json({ error: failure.message });
+  return res.status(failure.status).json({
+    error: failure.status === 401 ? 'unauthorized' : 'forbidden',
+    message: failure.message,
+  });
 }
 
 async function authenticateApiKey(req, scope) {
