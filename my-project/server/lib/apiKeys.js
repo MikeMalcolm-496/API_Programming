@@ -8,7 +8,7 @@
 // - The key prefix is stored to help identify keys in lists.
 
 const crypto = require('crypto');
-const db = require('../db');
+const pool = require('../db');
 
 const KEY_PREFIX = 'lfk_live_';
 const PREFIX_LEN = 16;
