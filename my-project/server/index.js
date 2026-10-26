@@ -46,14 +46,15 @@ app.get('/health', async (req, res) => {
 // ---- API keys (machine-to-machine access) ----
 // Which routes need a key is decided HERE, in one place, so it is easy to see.
 const { requireApiKey, optionalApiKey, staffOrApiKey } = require('./middleware/apiKey');
+const { rateLimitPerKey } = require('./middleware/rateLimit');
 if ((process.env.API_KEY_MODE || 'required').toLowerCase() === 'off') {
   console.warn('[api-key] API_KEY_MODE=off: API keys are NOT being checked.');
 }
-app.get('/found-items', optionalApiKey('items:read'));            // public UI works without a key
-app.get('/found-items/:itemId', optionalApiKey('items:read'));
-app.post('/found-items/batch-lookup', requireApiKey('items:batch'));
-app.post('/flagged-checks', requireApiKey('checks:write'));
-app.get('/claims/verify', staffOrApiKey('claims:verify'));        
+app.get('/found-items', optionalApiKey('items:read'), rateLimitPerKey);
+app.get('/found-items/:itemId', optionalApiKey('items:read'), rateLimitPerKey);
+app.post('/found-items/batch-lookup', requireApiKey('items:batch'), rateLimitPerKey);
+app.post('/flagged-checks', requireApiKey('checks:write'), rateLimitPerKey);
+app.get('/claims/verify', staffOrApiKey('claims:verify'), rateLimitPerKey);       
 app.use('/', require('./routes/apiKeys'));
 
 // Week 10: claim verification page + route (consumes the Strathbites API)
