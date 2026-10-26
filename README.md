@@ -129,7 +129,7 @@ Requests to these endpoints do not require an authentication token in the curren
 
 ## Rate Limiting
 
-Each API key can make 15 requests per minute. Calls are counted per key, so one team hitting the limit does not affect another team.
+Each API key can make 60 requests per minute. Calls are counted per key, so one team hitting the limit does not affect another team.
 
 Every response to a request with a key includes:
 - `X-RateLimit-Limit`: requests allowed per minute
@@ -139,10 +139,10 @@ Over the limit, the API returns `429 Too Many Requests` with a `Retry-After` hea
 
     {
       "error": "rate_limited",
-      "message": "Too many requests for this API key. Limit is 15 per minute. Try again in 42 seconds."
+      "message": "Too many requests for this API key. Limit is 60per minute. Try again in 42 seconds."
     }
 
-The limit is set in `.env` with `RATE_LIMIT_PER_MINUTE=15`.
+The limit is set in `.env` with `RATE_LIMIT_PER_MINUTE=60`.
 
 ## API Endpoints
 
