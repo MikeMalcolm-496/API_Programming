@@ -139,7 +139,7 @@ Over the limit, the API returns `429 Too Many Requests` with a `Retry-After` hea
 
     {
       "error": "rate_limited",
-      "message": "Too many requests for this API key. Limit is 60per minute. Try again in 42 seconds."
+      "message": "Too many requests for this API key. Limit is 60 per minute. Try again in 42 seconds."
     }
 
 The limit is set in `.env` with `RATE_LIMIT_PER_MINUTE=60`.
