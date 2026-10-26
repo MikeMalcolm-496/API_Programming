@@ -127,6 +127,23 @@ The currently inspected found-item routes do not implement authentication middle
 
 Requests to these endpoints do not require an authentication token in the current implementation. Confirm with the team whether authentication is required before deploying the API for public use.
 
+## Rate Limiting
+
+Each API key can make 60 requests per minute. Calls are counted per key, so one team hitting the limit does not affect another team.
+
+Every response to a request with a key includes:
+- `X-RateLimit-Limit`: requests allowed per minute
+- `X-RateLimit-Remaining`: requests left this minute
+
+Over the limit, the API returns `429 Too Many Requests` with a `Retry-After` header (seconds to wait):
+
+    {
+      "error": "rate_limited",
+      "message": "Too many requests for this API key. Limit is 60 per minute. Try again in 42 seconds."
+    }
+
+The limit is set in `.env` with `RATE_LIMIT_PER_MINUTE=60`.
+
 ## API Endpoints
 
 ### 1. List Found Items
