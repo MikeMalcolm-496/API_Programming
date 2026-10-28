@@ -127,6 +127,8 @@ The currently inspected found-item routes do not implement authentication middle
 
 Requests to these endpoints do not require an authentication token in the current implementation. Confirm with the team whether authentication is required before deploying the API for public use.
 
+Authenticated students, security staff, and administrators can submit item claims. Staff review and approve or reject claims; a staff account cannot approve a claim submitted by that same account. Approved claims record the reviewing user's ID and name in inquiry responses. Existing databases must apply `my-project/server/migrations/004_claim_approval_audit.sql` before deploying this change.
+
 ## Rate Limiting
 
 Each API key can make 60 requests per minute. Calls are counted per key, so one team hitting the limit does not affect another team.

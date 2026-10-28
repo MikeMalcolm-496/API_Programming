@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS inquiries (
   id uuid PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   found_item_id uuid NOT NULL REFERENCES found_items(id) ON DELETE CASCADE,
   claimant_user_id uuid NOT NULL REFERENCES users(id),
+  approved_by_user_id uuid REFERENCES users(id),
   status varchar NOT NULL DEFAULT 'pending',
   claim_description text NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),

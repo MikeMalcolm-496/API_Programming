@@ -1,7 +1,7 @@
 // Claims (inquiries) and the message thread on each claim.
 const express = require('express');
 const db = require('../db');
-const { authenticate, staffOnly, studentOnly } = require('../middleware/auth');
+const { authenticate, staffOnly } = require('../middleware/auth');
 const { UUID_RE, fail, serverError, isNonEmptyString } = require('../lib/shared');
 
 const router = express.Router();
@@ -11,16 +11,18 @@ const INQUIRY_COLUMNS = `
   i.id AS "inquiryId", i.found_item_id AS "itemId", i.claimant_user_id AS "claimantId",
   i.status, i.claim_description AS "claimDescription",
   i.created_at AS "createdAt", i.updated_at AS "updatedAt",
-  fi.title AS "itemTitle", u.full_name AS "claimantName"`;
+  fi.title AS "itemTitle", u.full_name AS "claimantName",
+  i.approved_by_user_id AS "approvedById", approver.full_name AS "approvedByName"`;
 const INQUIRY_FROM = `FROM inquiries i
   JOIN found_items fi ON fi.id = i.found_item_id
-  JOIN users u ON u.id = i.claimant_user_id`;
+  JOIN users u ON u.id = i.claimant_user_id
+  LEFT JOIN users approver ON approver.id = i.approved_by_user_id`;
 
 const itemNotFound = (res, id) => fail(res, 404, 'not_found', `No found item exists with ID ${id}.`);
 const inquiryNotFound = (res, id) => fail(res, 404, 'not_found', `No inquiry exists with ID ${id}.`);
 
-// POST /found-items/:itemId/inquiries   (student submits a claim)
-router.post('/found-items/:itemId/inquiries', studentOnly, async (req, res) => {
+// POST /found-items/:itemId/inquiries   (authenticated user submits a claim)
+router.post('/found-items/:itemId/inquiries', authenticate, async (req, res) => {
   try {
     const { itemId } = req.params;
     const text = req.body && req.body.claimDescription;
@@ -62,8 +64,8 @@ router.get('/found-items/:itemId/inquiries', staffOnly, async (req, res) => {
   }
 });
 
-// GET /inquiries/my   (student's own claims)
-router.get('/inquiries/my', studentOnly, async (req, res) => {
+// GET /inquiries/my   (authenticated user's own claims)
+router.get('/inquiries/my', authenticate, async (req, res) => {
   try {
     const { rows } = await db.query(
       `SELECT ${INQUIRY_COLUMNS} ${INQUIRY_FROM} WHERE i.claimant_user_id = $1 ORDER BY i.created_at DESC`,
@@ -106,13 +108,23 @@ router.patch('/inquiries/:inquiryId/status', staffOnly, async (req, res) => {
   try {
     client = await db.connect();
     await client.query('BEGIN');
-    const upd = await client.query(
-      `UPDATE inquiries SET status = $1, updated_at = now() WHERE id = $2 RETURNING found_item_id`,
-      [status, inquiryId]);
-    if (upd.rowCount === 0) {
+    const claim = await client.query(
+      `SELECT found_item_id, claimant_user_id FROM inquiries WHERE id = $1 FOR UPDATE`,
+      [inquiryId]);
+    if (claim.rowCount === 0) {
       await client.query('ROLLBACK');
       return inquiryNotFound(res, inquiryId);
     }
+    if (status === 'approved' && claim.rows[0].claimant_user_id === req.user.id) {
+      await client.query('ROLLBACK');
+      return fail(res, 403, 'forbidden', 'You cannot approve your own claim.');
+    }
+    const upd = await client.query(
+      `UPDATE inquiries
+       SET status = $1, updated_at = now(),
+           approved_by_user_id = CASE WHEN $1 = 'approved' THEN $3 ELSE approved_by_user_id END
+       WHERE id = $2 RETURNING found_item_id`,
+      [status, inquiryId, req.user.id]);
     const itemId = upd.rows[0].found_item_id;
     if (status === 'approved') {
       await client.query(`UPDATE found_items SET status = 'claimed', updated_at = now() WHERE id = $1`, [itemId]);

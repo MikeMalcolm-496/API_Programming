@@ -1,4 +1,4 @@
-// item-detail.html extras: photos, student claim form, and the claim message thread.
+// item-detail.html extras: photos, claims, and the claim message thread.
 // app.js still renders the item itself from the contract fields.
 (async () => {
   const { h } = LF;
@@ -15,6 +15,7 @@
   const loggedIn = Boolean(me && LF.token());
   const claimForm = $('claimForm');
   const claimInfo = $('claimMessage');
+  const itemClaims = $('itemClaims');
   const setInfo = (...nodes) => { claimInfo.replaceChildren(...nodes); claimInfo.hidden = false; };
 
   // ---- photos (public) ----
@@ -67,29 +68,24 @@
   // ---- who is looking? ----
   if (!loggedIn) {
     claimForm.hidden = true;
-    setInfo('Want to claim this item? ', h('a', { href: 'login.html' }, 'Log in'), ' or ', h('a', { href: 'register.html' }, 'register'), ' as a student first.');
+    setInfo('Want to claim this item? ', h('a', { href: 'login.html' }, 'Log in'), ' or ', h('a', { href: 'register.html' }, 'register'), ' first.');
     return;
   }
 
   if (LF.isStaff(me)) {
-    claimForm.hidden = true;
     claimSection.querySelector('h3').textContent = 'Claims on this item';
     try {
       const claims = await LF.api(`/found-items/${encodeURIComponent(itemId)}/inquiries`);
-      if (!claims.length) { setInfo('No claims have been submitted for this item yet.'); }
+      if (!claims.length) { itemClaims.textContent = 'No claims have been submitted for this item yet.'; }
       else {
-        claimInfo.replaceChildren(...claims.map((c) => h('p', {},
-          `${c.claimantName} (${c.status}): `,
+        itemClaims.replaceChildren(...claims.map((c) => h('p', {},
+          `${c.claimantName} (${c.status})${c.approvedByName ? ` — approved by ${c.approvedByName}` : ''}: `,
           h('a', { href: `item-detail.html?id=${encodeURIComponent(itemId)}&inquiry=${encodeURIComponent(c.inquiryId)}` }, 'open messages'))));
-        claimInfo.hidden = false;
       }
-    } catch (e) { setInfo(e.message); }
-    if (inquiryParam) openThread(inquiryParam);
-    return;
+    } catch (e) { itemClaims.textContent = e.message; }
   }
 
-  // student
-  async function refreshStudent() {
+  async function refreshMyClaim() {
     let mine = [];
     try { mine = (await LF.api('/inquiries/my')).filter((c) => c.itemId === itemId); }
     catch (e) { setInfo(e.message); return; }
@@ -111,9 +107,10 @@
         method: 'POST', json: { claimDescription: $('claimDescription').value },
       });
       $('claimDescription').value = '';
-      await refreshStudent();
+      await refreshMyClaim();
     } catch (e) { setInfo(e.message); }
     button.disabled = false;
   });
-  refreshStudent();
+  refreshMyClaim();
+  if (inquiryParam) openThread(inquiryParam);
 })();
