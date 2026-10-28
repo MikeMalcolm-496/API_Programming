@@ -17,7 +17,7 @@ The seed data goes into the existing tables (`users`, `found_items`, `inquiries`
 
 ## Creating new accounts
 
-Public self-registration and the shared staff sign-up code have been disabled. Seed accounts are loaded by the database seeder; all subsequent accounts must be invited by an existing administrator from the dashboard. Invitation links are single-use, expire after 24 hours, and must be shared privately.
+Public self-registration and the shared staff sign-up code have been disabled. Seed accounts are loaded by the database seeder; later users request an invitation on the registration page, then an admin reviews and approves from the dashboard. The system emails approved invitations using configured SMTP. Links are single-use and expire after 24 hours.
 
 ## The accounts
 
@@ -69,7 +69,7 @@ Categories and statuses only use the values your `openapi.yaml` allows, so the T
      "seed:reset": "node scripts/seed-data.js --reset",
      "seed:sql": "node scripts/seed-data.js --sql"
      ```
-2. In `my-project/server/.env`, make sure `DATABASE_URL` and `JWT_SECRET` are configured. `STAFF_SIGNUP_CODE` is no longer used.
+2. In `my-project/server/.env`, make sure `DATABASE_URL` and `JWT_SECRET` are configured. `STAFF_SIGNUP_CODE` is no longer used. Configure SMTP environment values for invitation email delivery as described in the README.
 3. Install dependencies:
    ```powershell
    cd my-project/server

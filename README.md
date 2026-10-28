@@ -129,9 +129,11 @@ Authenticated students, security staff, and administrators can submit item claim
 
 ### Admin-only account creation
 
-Public registration is disabled. The legacy `POST /auth/register` endpoint returns `403`; only an authenticated administrator can create a user invitation from the **Administer user accounts** section of the dashboard. Invitations can assign a student, security, or admin role and optionally link a student ID or Strathbites user ID. Each invitation is stored as a token hash, expires after 24 hours, and can be accepted only once. The administrator copies and securely shares the invitation link; the app does not currently send email.
+Public account creation is disabled. The legacy `POST /auth/register` endpoint returns `403`. On the registration page, a person can submit their email address to request an invitation. An administrator reviews the request, assigns a name and role, and approves it from the dashboard; the app then emails a single-use invite link, valid for 24 hours. Admins can also directly create and email invitations from the same dashboard.
 
-For a fresh database, apply `schema.sql` and the numbered migrations, including `004_claim_approval_audit.sql` and `005_admin_user_invitations.sql`. To bootstrap the first admin, configure the database connection in `my-project/server/.env`, then run `node scripts/create-first-admin.js` from `my-project/server` in an interactive terminal. The script prompts for the initial admin's details, hides the password as it is typed, and refuses to create another initial admin once one exists. After that, create all accounts through admin invitations.
+SMTP delivery requires these server environment variables: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, and `PUBLIC_APP_URL` (the public base URL serving `frontend/`). `SMTP_SECURE=true` can enable implicit TLS; port 465 enables it automatically. Set these values in the hosting provider's secret/environment settings, not in source control. If SMTP fails, no usable invitation remains active and the admin can retry an email-failed request.
+
+For a fresh database, apply `schema.sql` and the numbered migrations, including `004_claim_approval_audit.sql`, `005_admin_user_invitations.sql`, and `006_invitation_requests.sql`. To bootstrap the first admin, configure the database connection in `my-project/server/.env`, then run `node scripts/create-first-admin.js` from `my-project/server` in an interactive terminal. The script prompts for the initial admin's details, hides the password as it is typed, and refuses to create another initial admin once one exists. After that, create all accounts through admin invitations.
 
 ## Rate Limiting
 

@@ -6,6 +6,7 @@ const { createHash, randomBytes } = require('crypto');
 const db = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { fail, serverError, isNonEmptyString } = require('../lib/shared');
+const { sendInvitationEmail } = require('../lib/mailer');
 
 const router = express.Router();
 
@@ -41,6 +42,26 @@ const parseStrathbitesId = (v) => {
 // Public registration is disabled. User accounts are created through admin invites.
 router.post('/register', async (req, res) => {
   return fail(res, 403, 'forbidden', 'Accounts can only be created by an administrator.');
+});
+
+// Public request is deliberately generic to avoid revealing whether an email has an account.
+router.post('/invitation-requests', async (req, res) => {
+  const email = req.body && req.body.email;
+  if (!isNonEmptyString(email) || !EMAIL_RE.test(email.trim())) {
+    return fail(res, 400, 'invalid_request', 'A valid email is required.');
+  }
+  try {
+    await db.query(
+      `INSERT INTO user_invitation_requests (email)
+       SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM users WHERE lower(email) = $1)
+       ON CONFLICT DO NOTHING`,
+      [email.trim().toLowerCase()]);
+    return res.status(202).json({
+      message: 'If eligible, your request will be reviewed by an administrator. You will receive an email if an invitation is approved.',
+    });
+  } catch (err) {
+    return serverError(res, err);
+  }
 });
 
 // POST /auth/admin/invitations (administrator only)
@@ -80,7 +101,7 @@ router.post('/admin/invitations', adminOnly, async (req, res) => {
       `INSERT INTO user_invitations
          (full_name, email, role, student_id, strathbites_user_id, token_hash, created_by_user_id, expires_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, now() + interval '24 hours')
-       RETURNING expires_at`,
+       RETURNING id, expires_at`,
       [
         b.fullName.trim(),
         email,
@@ -91,12 +112,136 @@ router.post('/admin/invitations', adminOnly, async (req, res) => {
         req.user.id,
       ]);
     await client.query('COMMIT');
+    try {
+      await sendInvitationEmail({ email, fullName: b.fullName.trim(), token });
+    } catch (err) {
+      console.error('Invitation email could not be sent:', err);
+      await db.query('UPDATE user_invitations SET used_at = now() WHERE id = $1', [inserted.rows[0].id]);
+      return fail(res, 503, 'email_unavailable', 'Invitation email could not be sent. Check SMTP configuration and retry.');
+    }
     return res.status(201).json({
       email,
       role,
-      token,
       expiresAt: inserted.rows[0].expires_at,
     });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (err.code === '23505') return fail(res, 409, 'conflict', 'An account or invitation already exists for this email.');
+    return serverError(res, err);
+  } finally {
+    if (client) client.release();
+  }
+});
+
+// GET /auth/admin/invitation-requests (administrator only)
+router.get('/admin/invitation-requests', adminOnly, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT id, email, status, created_at AS "createdAt"
+       FROM user_invitation_requests
+       WHERE status IN ('pending', 'email_failed')
+       ORDER BY created_at ASC`);
+    return res.json(rows);
+  } catch (err) {
+    return serverError(res, err);
+  }
+});
+
+// POST /auth/admin/invitation-requests/:requestId/reject (administrator only)
+router.post('/admin/invitation-requests/:requestId/reject', adminOnly, async (req, res) => {
+  const { requestId } = req.params;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestId)) {
+    return fail(res, 404, 'not_found', 'No invitation request exists with that ID.');
+  }
+  try {
+    const result = await db.query(
+      `UPDATE user_invitation_requests
+       SET status = 'rejected', reviewed_at = now(), reviewed_by_user_id = $2
+       WHERE id = $1 AND status IN ('pending', 'email_failed')
+       RETURNING id`,
+      [requestId, req.user.id]);
+    if (result.rowCount === 0) return fail(res, 404, 'not_found', 'No pending invitation request exists with that ID.');
+    return res.json({ status: 'rejected' });
+  } catch (err) {
+    return serverError(res, err);
+  }
+});
+
+// POST /auth/admin/invitation-requests/:requestId/approve (administrator only)
+router.post('/admin/invitation-requests/:requestId/approve', adminOnly, async (req, res) => {
+  const { requestId } = req.params;
+  const b = req.body || {};
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestId)) {
+    return fail(res, 404, 'not_found', 'No invitation request exists with that ID.');
+  }
+  if (!isNonEmptyString(b.fullName)) return fail(res, 400, 'invalid_request', 'fullName is required.');
+  const role = b.role === undefined ? 'student' : b.role;
+  if (!ROLES.includes(role)) return fail(res, 400, 'invalid_request', `role must be one of: ${ROLES.join(', ')}.`);
+  const sb = parseStrathbitesId(b.strathbitesUserId);
+  if (sb.error) return fail(res, 400, 'invalid_request', sb.error);
+
+  const token = randomBytes(32).toString('base64url');
+  let client;
+  let invitationRequest;
+  let invitationId;
+  try {
+    client = await db.connect();
+    await client.query('BEGIN');
+    const found = await client.query(
+      `SELECT id, email FROM user_invitation_requests
+       WHERE id = $1 AND status IN ('pending', 'email_failed')
+       FOR UPDATE`,
+      [requestId]);
+    if (found.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return fail(res, 404, 'not_found', 'No pending invitation request exists with that ID.');
+    }
+    invitationRequest = found.rows[0];
+    const existingUser = await client.query('SELECT 1 FROM users WHERE lower(email) = $1', [invitationRequest.email.toLowerCase()]);
+    if (existingUser.rowCount > 0) {
+      await client.query(
+        `UPDATE user_invitation_requests SET status = 'rejected', reviewed_at = now(), reviewed_by_user_id = $2
+         WHERE id = $1`, [requestId, req.user.id]);
+      await client.query('COMMIT');
+      return fail(res, 409, 'conflict', 'An account already exists for this email.');
+    }
+
+    await client.query(
+      `UPDATE user_invitations SET used_at = now()
+       WHERE lower(email) = $1 AND used_at IS NULL`, [invitationRequest.email.toLowerCase()]);
+    const invitation = await client.query(
+      `INSERT INTO user_invitations
+         (full_name, email, role, student_id, strathbites_user_id, token_hash, created_by_user_id, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, now() + interval '24 hours')
+       RETURNING id, expires_at`,
+      [
+        b.fullName.trim(),
+        invitationRequest.email,
+        role,
+        isNonEmptyString(b.studentId) ? b.studentId.trim() : null,
+        sb.value ?? null,
+        hashInviteToken(token),
+        req.user.id,
+      ]);
+    invitationId = invitation.rows[0].id;
+    await client.query(
+      `UPDATE user_invitation_requests
+       SET status = 'email_failed', reviewed_at = now(), reviewed_by_user_id = $2, invitation_id = $3
+       WHERE id = $1`,
+      [requestId, req.user.id, invitationId]);
+    await client.query('COMMIT');
+
+    try {
+      await sendInvitationEmail({ email: invitationRequest.email, fullName: b.fullName.trim(), token });
+    } catch (err) {
+      console.error('Invitation request email could not be sent:', err);
+      await db.query('UPDATE user_invitations SET used_at = now() WHERE id = $1', [invitationId]);
+      return fail(res, 503, 'email_unavailable', 'Invitation email could not be sent. Check SMTP configuration; the request remains available to retry.');
+    }
+    await db.query(
+      `UPDATE user_invitation_requests SET status = 'emailed' WHERE id = $1 AND invitation_id = $2`,
+      [requestId, invitationId]);
+    return res.json({ email: invitationRequest.email, role, expiresAt: invitation.rows[0].expires_at });
   } catch (err) {
     if (client) await client.query('ROLLBACK').catch(() => {});
     if (err.code === '23505') return fail(res, 409, 'conflict', 'An account or invitation already exists for this email.');

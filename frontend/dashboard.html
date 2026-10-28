@@ -31,7 +31,7 @@
         <div id="securityDashboard" hidden>
             <section id="adminAccountsSection" class="dashboard-section" hidden>
                 <h2>Administer user accounts</h2>
-                <p class="text-muted">Create a one-time invitation for an approved student, staff member, or administrator. Share the link securely; it expires in 24 hours.</p>
+                <p class="text-muted">Create a one-time invitation for an approved student, staff member, or administrator. The invitation is sent by email and expires in 24 hours.</p>
                 <form id="inviteUserForm" class="form-card">
                     <div class="form-row">
                         <div class="form-group">
@@ -66,6 +66,8 @@
                     <button type="submit" class="btn btn-primary">Create invitation</button>
                 </form>
                 <div id="inviteUserResult" class="info-message" role="status" hidden></div>
+                <h3>Invitation requests</h3>
+                <div id="invitationRequestsContainer"><p class="text-muted">Loading requests...</p></div>
             </section>
 
             <section class="dashboard-section">

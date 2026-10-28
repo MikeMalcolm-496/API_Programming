@@ -3,11 +3,15 @@ jest.mock('../db', () => ({
   connect: jest.fn(),
   end: jest.fn(),
 }));
+jest.mock('../lib/mailer', () => ({
+  sendInvitationEmail: jest.fn(),
+}));
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const request = require('supertest');
 const db = require('../db');
+const { sendInvitationEmail } = require('../lib/mailer');
 const app = require('../index');
 
 const ADMIN_ID = '00000000-0000-4000-8000-000000000001';
@@ -26,9 +30,22 @@ beforeEach(() => {
   process.env.JWT_SECRET = JWT_SECRET;
   db.query.mockReset();
   db.connect.mockReset();
+  sendInvitationEmail.mockReset().mockResolvedValue(undefined);
 });
 
 describe('admin-managed account invitations', () => {
+  it('queues an invitation request without revealing account eligibility', async () => {
+    db.query.mockResolvedValueOnce({ rowCount: 1, rows: [] });
+
+    const response = await request(app)
+      .post('/auth/invitation-requests')
+      .send({ email: ' New.User@example.test ' });
+
+    expect(response.status).toBe(202);
+    expect(response.body.message).toMatch(/if eligible/i);
+    expect(db.query.mock.calls[0][1]).toEqual(['new.user@example.test']);
+  });
+
   it('disables public account registration', async () => {
     const response = await request(app).post('/auth/register').send({
       fullName: 'Uninvited User',
@@ -75,9 +92,14 @@ describe('admin-managed account invitations', () => {
     expect(response.status).toBe(201);
     expect(response.body.email).toBe('new@example.test');
     expect(response.body.role).toBe('student');
-    expect(response.body.token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(response.body.token).toBeUndefined();
+    expect(sendInvitationEmail).toHaveBeenCalledWith(expect.objectContaining({
+      email: 'new@example.test',
+      fullName: 'New User',
+      token: expect.stringMatching(/^[A-Za-z0-9_-]{43}$/),
+    }));
     expect(client.query.mock.calls[4][1][5]).toMatch(/^[a-f0-9]{64}$/);
-    expect(client.query.mock.calls[4][1][5]).not.toBe(response.body.token);
+    expect(client.query.mock.calls[4][1][5]).not.toBe(sendInvitationEmail.mock.calls[0][0].token);
     expect(client.query.mock.calls[4][1][6]).toBe(ADMIN_ID);
     expect(client.release).toHaveBeenCalled();
   });
@@ -146,5 +168,46 @@ describe('admin-managed account invitations', () => {
     expect(response.status).toBe(400);
     expect(response.body.message).toMatch(/invalid, expired, or already used/i);
     expect(client.query.mock.calls[2][0]).toBe('ROLLBACK');
+  });
+
+  it('lets an admin approve a request and email a one-time invitation', async () => {
+    const client = {
+      query: jest.fn()
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: INVITATION_ID, email: 'new@example.test' }] })
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({ rows: [{ id: '00000000-0000-4000-8000-000000000004', expires_at: '2030-01-01T00:00:00Z' }] })
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({}),
+      release: jest.fn(),
+    };
+    db.connect.mockResolvedValueOnce(client);
+    db.query.mockResolvedValueOnce({ rowCount: 1, rows: [] });
+
+    const response = await apiAs(ADMIN_ID, 'admin')
+      .post(`/auth/admin/invitation-requests/${INVITATION_ID}/approve`)
+      .send({ fullName: 'New User', role: 'student', strathbitesUserId: 23 });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ email: 'new@example.test', role: 'student' });
+    expect(sendInvitationEmail).toHaveBeenCalledWith(expect.objectContaining({
+      email: 'new@example.test',
+      fullName: 'New User',
+      token: expect.stringMatching(/^[A-Za-z0-9_-]{43}$/),
+    }));
+    expect(client.query.mock.calls[5][1][1]).toBe(ADMIN_ID);
+    expect(client.release).toHaveBeenCalled();
+  });
+
+  it('lets an admin reject an invitation request', async () => {
+    db.query.mockResolvedValueOnce({ rowCount: 1, rows: [{ id: INVITATION_ID }] });
+
+    const response = await apiAs(ADMIN_ID, 'admin')
+      .post(`/auth/admin/invitation-requests/${INVITATION_ID}/reject`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('rejected');
+    expect(db.query.mock.calls[0][1]).toEqual([INVITATION_ID, ADMIN_ID]);
   });
 });

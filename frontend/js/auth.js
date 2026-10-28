@@ -60,4 +60,30 @@
       }
     });
   }
+
+  const requestInviteForm = $('requestInviteForm');
+  if (requestInviteForm) {
+    requestInviteForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const error = $('requestInviteError');
+      const success = $('requestInviteSuccess');
+      const button = requestInviteForm.querySelector('button[type="submit"]');
+      error.hidden = true;
+      success.hidden = true;
+      button.disabled = true;
+      try {
+        const result = await LF.api('/auth/invitation-requests', {
+          method: 'POST',
+          json: { email: $('requestInviteEmail').value },
+        });
+        success.textContent = result.message;
+        success.hidden = false;
+        requestInviteForm.reset();
+      } catch (e) {
+        showError(error, e.message);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
 })();

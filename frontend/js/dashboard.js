@@ -150,23 +150,7 @@
               ? Number($('inviteStrathbitesId').value) : undefined,
           },
         });
-        const link = new URL('accept-invite.html', window.location.href);
-        link.searchParams.set('token', invite.token);
-        const linkInput = h('input', { type: 'url', readonly: true, value: link.href, 'aria-label': 'One-time invitation link' });
-        const copy = h('button', { class: 'btn btn-outline', type: 'button' }, 'Copy invitation link');
-        copy.addEventListener('click', async () => {
-          try {
-            await navigator.clipboard.writeText(link.href);
-            copy.textContent = 'Copied';
-          } catch (e) {
-            error.textContent = 'Could not copy the link automatically. Select and copy the link above.';
-            error.hidden = false;
-          }
-        });
-        result.replaceChildren(
-          h('p', {}, `Invitation created for ${invite.email}. It expires ${LF.formatDateTime(invite.expiresAt)}. Share it securely; it can be used once.`),
-          linkInput,
-          copy);
+        result.replaceChildren(h('p', {}, `Invitation email sent to ${invite.email}. The one-time link expires ${LF.formatDateTime(invite.expiresAt)}.`));
         result.hidden = false;
         form.reset();
       } catch (e) {
@@ -178,12 +162,87 @@
     });
   }
 
+  async function loadInvitationRequests() {
+    const box = $('invitationRequestsContainer');
+    try {
+      const requests = await LF.api('/auth/admin/invitation-requests');
+      if (!requests.length) {
+        box.replaceChildren(empty('No invitation requests are waiting for review.'));
+        return;
+      }
+      box.replaceChildren(...requests.map((inviteRequest) => {
+        const form = h('form', { class: 'form-card' },
+          h('p', {}, `${inviteRequest.email} · requested ${LF.formatDateTime(inviteRequest.createdAt)} · ${inviteRequest.status === 'email_failed' ? 'email failed; retry available' : 'pending review'}`),
+          h('div', { class: 'form-row' },
+            h('div', { class: 'form-group' },
+              h('label', { for: `invite-name-${inviteRequest.id}` }, 'Full name'),
+              h('input', { id: `invite-name-${inviteRequest.id}`, name: 'fullName', required: true })),
+            h('div', { class: 'form-group' },
+              h('label', { for: `invite-role-${inviteRequest.id}` }, 'Role'),
+              h('select', { id: `invite-role-${inviteRequest.id}`, name: 'role' },
+                h('option', { value: 'student' }, 'Student'),
+                h('option', { value: 'security' }, 'Security staff'),
+                h('option', { value: 'admin' }, 'Administrator')))),
+          h('div', { class: 'form-group' },
+            h('label', { for: `invite-sb-${inviteRequest.id}` }, 'Strathbites user ID (optional)'),
+            h('input', { id: `invite-sb-${inviteRequest.id}`, name: 'strathbitesUserId', type: 'number', min: '1', step: '1' })),
+          h('div', { class: 'error-message', role: 'alert', hidden: true }),
+          h('div', { class: 'inquiry-actions' },
+            h('button', { class: 'btn btn-primary', type: 'submit' }, inviteRequest.status === 'email_failed' ? 'Retry and email invite' : 'Approve and email invite'),
+            h('button', { class: 'btn btn-danger', type: 'button' }, 'Reject request')));
+        const reject = form.querySelector('button[type="button"]');
+        reject.addEventListener('click', async () => {
+          reject.disabled = true;
+          try {
+            await LF.api(`/auth/admin/invitation-requests/${encodeURIComponent(inviteRequest.id)}/reject`, { method: 'POST' });
+            loadInvitationRequests();
+          } catch (e) {
+            const error = form.querySelector('[role="alert"]');
+            error.textContent = e.message;
+            error.hidden = false;
+            reject.disabled = false;
+          }
+        });
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const button = form.querySelector('button[type="submit"]');
+          const error = form.querySelector('[role="alert"]');
+          button.disabled = true;
+          error.hidden = true;
+          const values = new FormData(form);
+          try {
+            const result = await LF.api(`/auth/admin/invitation-requests/${encodeURIComponent(inviteRequest.id)}/approve`, {
+              method: 'POST',
+              json: {
+                fullName: values.get('fullName'),
+                role: values.get('role'),
+                strathbitesUserId: values.get('strathbitesUserId')
+                  ? Number(values.get('strathbitesUserId')) : undefined,
+              },
+            });
+            window.alert(`Invitation email sent to ${result.email}.`);
+            loadInvitationRequests();
+          } catch (e) {
+            error.textContent = e.message;
+            error.hidden = false;
+            button.disabled = false;
+          }
+        });
+        return form;
+      }));
+    } catch (e) {
+      box.replaceChildren(errorLine(e));
+      handleAuthLoss();
+    }
+  }
+
   $('dashboardRoleInfo').textContent = me.role === 'admin'
     ? 'Administrator Dashboard'
     : LF.isStaff(me) ? 'Security Staff Dashboard' : 'Student Dashboard';
   if (LF.isStaff(me)) {
     securityBox.hidden = false;
     initAdminInvitations();
+    loadInvitationRequests();
     initPostForm();
     loadReviewQueue();
     loadMyItems();

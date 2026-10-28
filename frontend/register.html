@@ -26,7 +26,16 @@
         <div class="auth-card">
             <h2>Account registration</h2>
             <p class="auth-subtitle">Accounts are created by a Lost &amp; Found administrator.</p>
-            <p>Ask your administrator for a one-time invitation link. The link expires after 24 hours and can only be used once.</p>
+            <p>Request an invitation below. An administrator reviews requests and chooses the account role. If approved, the one-time link will be sent to your email address and will expire after 24 hours.</p>
+            <form id="requestInviteForm" class="auth-form">
+                <div class="form-group">
+                    <label for="requestInviteEmail">Email address</label>
+                    <input type="email" id="requestInviteEmail" autocomplete="email" placeholder="you@example.com" required />
+                </div>
+                <div id="requestInviteError" class="error-message" role="alert" hidden></div>
+                <div id="requestInviteSuccess" class="success-message" role="status" hidden></div>
+                <button type="submit" class="btn btn-primary btn-block">Request invitation</button>
+            </form>
 
             <p class="auth-footer">
                 Already have an account? <a href="login.html">Login here</a>
