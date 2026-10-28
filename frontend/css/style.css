@@ -625,6 +625,25 @@ a:hover {
     font-weight: 600;
 }
 
+.strathbites-call-summary {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    background: white;
+}
+
+.strathbites-call-summary h4 {
+    margin-bottom: 6px;
+}
+
+.strathbites-call-summary ul {
+    padding-left: 20px;
+}
+
+.strathbites-call-summary li {
+    overflow-wrap: anywhere;
+}
+
 .messages-container {
     max-height: 300px;
     overflow-y: auto;

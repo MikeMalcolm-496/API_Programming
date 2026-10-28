@@ -7,10 +7,17 @@ jest.mock('../db', () => ({
   end: jest.fn(),
 }));
 
+jest.mock('../lib/strathbites', () => ({
+  verifyClaimant: jest.fn(),
+  extractLocationId: jest.fn(),
+  PartnerError: class PartnerError extends Error {},
+}));
+
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const request = require('supertest');
 const { verifyKey } = require('../lib/apiKeys');
+const { verifyClaimant } = require('../lib/strathbites');
 const db = require('../db');
 const { requireApiKey, optionalApiKey, staffOrApiKey } = require('../middleware/apiKey');
 const server = require('../index');
@@ -28,6 +35,7 @@ describe('API-key middleware', () => {
     process.env.API_KEY_MODE = 'required';
     process.env.JWT_SECRET = 'test-secret';
     verifyKey.mockReset();
+    verifyClaimant.mockReset();
     db.query.mockResolvedValue({ rows: [] });
   });
 
@@ -50,6 +58,27 @@ describe('API-key middleware', () => {
     expect(response.status).toBe(401);
     expect(response.body.error).toBe('unauthorized');
     expect(response.body.message).toMatch(/API key required/);
+  });
+
+  it('accepts a claims:verify API key for manual Strathbites verification', async () => {
+    verifyKey.mockResolvedValue({
+      key: { id: 'key-id', name: 'integration', keyPrefix: 'custom_', scopes: ['claims:verify'] },
+    });
+    verifyClaimant.mockResolvedValue({
+      userId: 3,
+      locationId: 'cafe-3',
+      orderCount: 1,
+      partnerCalls: [],
+    });
+
+    const response = await request(server)
+      .get('/claims/verify?userId=3&locationId=cafe-3')
+      .set('X-API-Key', 'custom-key-value');
+
+    expect(response.status).toBe(200);
+    expect(response.body.userId).toBe(3);
+    expect(verifyKey).toHaveBeenCalledWith('custom-key-value');
+    expect(verifyClaimant).toHaveBeenCalledWith('3', 'cafe-3', { lostDate: undefined });
   });
 
   it('serves the browser-facing item list without exposing an API key', async () => {

@@ -1,6 +1,4 @@
-# Zip 2: Consuming the Strathbites API (claim verification)
 
-**Apply Zip 1 first** (the seed claims and students are used here).
 
 ## The goal
 
@@ -38,7 +36,7 @@ Who uses it:
 
 | Caller | File | Route / command |
 |---|---|---|
-| Manual check | `routes/claimVerification.js` | `GET /claims/verify?userId=3&locationId=cafe-3&lostDate=2026-10-20` |
+| Manual check | `routes/claimVerification.js` | `GET /claims/verify?userId=3&locationId=cafe-3&lostDate=2026-10-20` (staff session or a `claims:verify` API key) |
 | Real claim check (new) | `routes/claimVerification.js` | `GET /inquiries/{inquiryId}/verify` (security/admin login needed) |
 | Command line tool (new) | `scripts/strathbites-cli.js` | `npm run strathbites -- 3 cafe-3 --date 2026-10-20` |
 | Item page (staff) | `frontend/js/strathbites.js` | calls our two routes above, never Strathbites directly |
@@ -118,14 +116,14 @@ curl.exe "http://localhost:5000/claims/verify?userId=3&locationId=cafe-3&debug=t
 
 ### 2. The other way (browser)
 
-**a) The app.** Log in as security (`peter.mwangi@strathmore.edu` / `Security@LF2026`), open the Samsung phone item:
+**a) Link the claimant's account.** Students can link or unlink their Strathbites user ID from the **Strathbites account** section of their dashboard. Administrators can also provide the ID when creating an account. The ID is stored against the Lost & Found account; the partner API key remains on the server.
+
+**b) The app.** Log in as security, open an eligible cafeteria-found item:
 `item-detail.html?id=c0000000-0000-4000-8000-000000000001`
 
-You get a **Verify claims with Strathbites** section listing Brian's claim with a **Verify with Strathbites** button, and a **Manual Strathbites check** form below it. See `screenshots/item-page-staff-verification.png` for what it should look like.
+The staff-only **Strathbites claim verification** section lists its claims with a **Verify with Strathbites** button. It shows the order count, matching order on the found date, first-time status, credibility and explanation. A **Manual Strathbites check** form is also available to staff. Claimants cannot see another user's order history.
 
-**b) DevTools Console (F12 > Console).** Each check prints a green `[Strathbites]` group showing the call the browser made to our server, a table of the three Strathbites URLs our server called (status and time for each) and the full response.
-
-**c) DevTools Network (F12 > Network, filter `verify`).** Shows the browser only ever calls `localhost:5000/...verify`, never trycloudflare. Click it and open **Response**: the `partnerCalls` array lists the Strathbites URLs. This is the proof that the server side does the calling.
+**c) Partner-call evidence.** Each result includes a **Strathbites API requests** list showing the three partner endpoints, their HTTP statuses and response times. Use the browser Network tab to inspect the authenticated request to our server; the browser never calls Strathbites directly.
 
 **d) Standalone page.** `http://localhost:5000/verify`: type a Strathbites user ID, a cafeteria and a date. It shows the verdict, the matching orders and a table "Strathbites calls made by our server".
 
@@ -134,12 +132,12 @@ You get a **Verify claims with Strathbites** section listing Brian's claim with 
 | File | Change | Why |
 |---|---|---|
 | `my-project/server/lib/strathbites.js` | **New.** All Strathbites calls, logging, timeout, contract check, join, scoring | One place to show, test and fix the integration |
-| `my-project/server/routes/claimVerification.js` | Uses the new lib. `/claims/verify` gains `lostDate` and `debug`. New `GET /inquiries/:inquiryId/verify` | Verify a real claim automatically from the claim's data instead of typing IDs |
+| `my-project/server/routes/claimVerification.js` | Uses the integration library; manual checks accept a scoped `claims:verify` key or staff session; real claim verification stays staff-only | Keep the API-key demo working without requiring a second login |
 | `my-project/server/migrations/002_strathbites_link.sql` | **New.** Adds `users.strathbites_user_id`, links the 3 seed students | Our user IDs (UUIDs) and Strathbites user IDs (integers) are different systems; we need the mapping |
 | `my-project/server/schema.sql` | Same column added at the end | Fresh databases get it too |
 | `my-project/server/routes/auth.js` | Register accepts optional `strathbitesUserId`; new `PATCH /auth/me` to link it later; user objects include it | So students can link their Strathbites account |
-| `frontend/dashboard.html`, `frontend/js/dashboard.js` | Admin-created accounts can optionally link a "Strathbites User ID" for any account role | A claimant may be a student or staff member |
-| `frontend/js/strathbites.js` | Staff only. Lists claims with a Verify button, manual form prefilled with the item's cafeteria and date, console logging | Order history is personal data; students should not look up other people |
+| `frontend/dashboard.html`, `frontend/js/dashboard.js` | Students can link/unlink their own Strathbites ID; administrators can optionally link accounts they create | Existing and new claimant accounts can be linked |
+| `frontend/js/strathbites.js` | Staff only. Lists claims with a Verify button, manual form prefilled with the item's cafeteria and date, and displays partner endpoint statuses and timings | Order history is personal data; only staff can view verification results |
 | `frontend/js/app.js` | Uses `http://localhost:5000` when the page is opened from localhost (same rule `session.js` already had) | Before this, the item page loaded data from Render even when you were testing locally, so local items showed "not found" |
 | `my-project/server/verify.html` | Date field, reasons, "calls made" table, console logging | Demo page for the lecturer |
 | `my-project/server/scripts/strathbites-cli.js` | **New.** Command line demo | "Console way" |

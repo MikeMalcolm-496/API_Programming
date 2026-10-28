@@ -126,6 +126,23 @@
         </div>
 
         <div id="studentDashboard" hidden>
+            <section class="dashboard-section" aria-labelledby="studentStrathbitesHeading">
+                <h2 id="studentStrathbitesHeading">Strathbites account</h2>
+                <p class="text-muted">Link your Strathbites user ID so Security staff can check cafeteria visits when reviewing a claim. Your order history is only used for staff verification.</p>
+                <form id="strathbitesAccountForm" class="form-card">
+                    <div class="form-group">
+                        <label for="studentStrathbitesUserId">Strathbites user ID</label>
+                        <input type="number" id="studentStrathbitesUserId" min="1" step="1" required />
+                        <small class="form-hint">Use the numeric user ID from your Strathbites account.</small>
+                    </div>
+                    <div id="strathbitesAccountError" class="error-message" role="alert" hidden></div>
+                    <div id="strathbitesAccountStatus" class="success-message" role="status" aria-live="polite" hidden></div>
+                    <div class="inquiry-actions">
+                        <button id="saveStrathbitesAccount" type="submit" class="btn btn-primary">Save Strathbites ID</button>
+                        <button id="unlinkStrathbitesAccount" type="button" class="btn btn-danger" hidden>Unlink account</button>
+                    </div>
+                </form>
+            </section>
             <section class="dashboard-section">
                 <h2>My Claims</h2>
                 <div id="myClaimsContainer"><p class="text-muted">Loading...</p></div>

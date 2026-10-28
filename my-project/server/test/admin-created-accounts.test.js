@@ -22,6 +22,7 @@ function apiAs(id, role, mustChangePassword = false) {
   return {
     get: (path) => request(app).get(path).set('Authorization', authorization),
     post: (path) => request(app).post(path).set('Authorization', authorization),
+    patch: (path) => request(app).patch(path).set('Authorization', authorization),
   };
 }
 
@@ -148,6 +149,57 @@ describe('admin-created accounts', () => {
     const [sql, values] = db.query.mock.calls[0];
     expect(sql).toContain('must_change_password = false');
     await expect(bcrypt.compare('a-new-secure-password', values[0])).resolves.toBe(true);
+  });
+
+  it('lets a student link and unlink their Strathbites account', async () => {
+    db.query
+      .mockResolvedValueOnce({
+        rows: [{
+          id: USER_ID,
+          full_name: 'New User',
+          email: 'new@example.test',
+          role: 'student',
+          student_id: 'S123',
+          strathbites_user_id: 23,
+          must_change_password: false,
+        }],
+      })
+      .mockResolvedValueOnce({
+        rows: [{
+          id: USER_ID,
+          full_name: 'New User',
+          email: 'new@example.test',
+          role: 'student',
+          student_id: 'S123',
+          strathbites_user_id: null,
+          must_change_password: false,
+        }],
+      });
+
+    const linked = await apiAs(USER_ID, 'student')
+      .patch('/auth/me')
+      .send({ strathbitesUserId: 23 });
+    expect(linked.status).toBe(200);
+    expect(linked.body.strathbitesUserId).toBe(23);
+    expect(db.query.mock.calls[0][0]).toContain('UPDATE users SET strathbites_user_id = $1');
+    expect(db.query.mock.calls[0][1]).toEqual([23, USER_ID]);
+
+    const unlinked = await apiAs(USER_ID, 'student')
+      .patch('/auth/me')
+      .send({ strathbitesUserId: null });
+    expect(unlinked.status).toBe(200);
+    expect(unlinked.body.strathbitesUserId).toBeNull();
+    expect(db.query.mock.calls[1][1]).toEqual([null, USER_ID]);
+  });
+
+  it('rejects invalid Strathbites account IDs', async () => {
+    const response = await apiAs(USER_ID, 'student')
+      .patch('/auth/me')
+      .send({ strathbitesUserId: 0 });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toMatch(/positive whole number/);
+    expect(db.query).not.toHaveBeenCalled();
   });
 
   it('does not allow normal sessions to use the first-login password endpoint', async () => {

@@ -12,6 +12,12 @@ const {
 
 const router = express.Router();
 
+// index.js validates the claims:verify scope before setting req.apiKey.
+const manualVerificationAccess = [
+  (req, res, next) => req.apiKey ? next() : staffOnly[0](req, res, next),
+  (req, res, next) => req.apiKey ? next() : staffOnly[1](req, res, next),
+];
+
 function sendPartnerError(res, err) {
   if (err instanceof PartnerError) {
     return res.status(err.httpStatus).json({
@@ -25,7 +31,7 @@ function sendPartnerError(res, err) {
 
 // GET /claims/verify?userId=3&locationId=cafe-3[&lostDate=2026-10-20]
 // Manual verification for staff only.
-router.get('/claims/verify', staffOnly, async (req, res) => {
+router.get('/claims/verify', ...manualVerificationAccess, async (req, res) => {
   try {
     const { userId, locationId, lostDate } = req.query;
 

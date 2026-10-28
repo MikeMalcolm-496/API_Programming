@@ -5,10 +5,7 @@
 //   GET /claims/verify?userId=&locationId=&lostDate=   manual check
 // and our server (lib/strathbites.js) calls the three Strathbites endpoints.
 //
-// To show the calls in the browser: open DevTools (F12)
-//   - Console tab: every check prints a "[Strathbites]" group with the
-//     Strathbites URLs our server called, their status codes and timings.
-//   - Network tab: filter by "verify" to see our request and the JSON reply.
+// Partner-call status and timing are displayed in the staff-only results panel.
 (() => {
   const anchor = document.getElementById('inquirySection');
   if (!anchor || !window.LF) return;
@@ -19,31 +16,7 @@
 
   const extractCafe = (text) => ((String(text || '').match(/\bcafe-\d+\b/i) || [])[0] || '').toLowerCase();
 
-  // ---------- browser console logging ----------
-  function logToConsole(label, ourUrl, data) {
-    try {
-      console.groupCollapsed(`%c[Strathbites] ${label}`, 'color:#0b7a3e;font-weight:bold');
-      console.log('Our API call (browser -> Lost & Found server):', ourUrl);
-      const calls = data && (data.partnerCalls || (data.verification && data.verification.partnerCalls));
-      if (calls) {
-        console.log('Strathbites calls (Lost & Found server -> Strathbites):');
-        console.table(calls.map((c) => ({ endpoint: c.endpoint, status: c.status, ms: c.ms, url: c.url })));
-      }
-      console.log('Full response:', data);
-      console.groupEnd();
-    } catch (e) { /* console unavailable */ }
-  }
-
-  async function callOurApi(path, label) {
-    try {
-      const data = await LF.api(path);
-      logToConsole(label, path, data);
-      return data;
-    } catch (e) {
-      logToConsole(`${label} (failed)`, path, { error: e.message });
-      throw e;
-    }
-  }
+  const callOurApi = (path) => LF.api(path);
 
   // ---------- rendering ----------
   const stat = (value, label) => h('div', { style: 'padding:12px;border:1px solid #ddd;border-radius:8px;min-width:130px' },
@@ -51,6 +24,13 @@
     h('div', { class: 'text-muted' }, label));
 
   const CRED_COLOR = { high: '#0b7a3e', medium: '#a86b00', low: '#b3261e' };
+  function renderPartnerCalls(calls) {
+    return h('section', { class: 'strathbites-call-summary', 'aria-label': 'Partner API request results' },
+      h('h4', {}, 'Strathbites API requests'),
+      h('ul', {}, ...calls.map((call) =>
+        h('li', {}, `${call.endpoint} — HTTP ${call.status}, ${call.ms} ms`))));
+  }
+
   function renderVerification(v) {
     return h('div', {},
       h('div', { style: 'display:flex;gap:12px;flex-wrap:wrap;margin:12px 0' },
@@ -65,7 +45,8 @@
       ...v.ordersAtLocation.slice(0, 5).map((o) =>
         h('p', { class: 'text-muted', style: 'margin:2px 0' }, `Order ${o.orderId} · ${LF.formatDateTime(o.timestamp)}`)),
       h('p', { class: 'text-muted', style: 'font-size:12px;margin-top:8px' },
-        `Source: Strathbites API, ${v.partnerCalls.length} calls. Details in the browser console (F12).`));
+        `Source: Strathbites API · ${v.partnerCalls.length} partner requests.`),
+      renderPartnerCalls(v.partnerCalls));
   }
 
   // ---------- section 1: claims on this item ----------
@@ -89,7 +70,7 @@
         btn.disabled = true;
         out.replaceChildren(h('p', {}, 'Checking with Strathbites…'));
         try {
-          const d = await callOurApi(`/inquiries/${encodeURIComponent(c.inquiryId)}/verify`, `claim by ${c.claimantName}`);
+          const d = await callOurApi(`/inquiries/${encodeURIComponent(c.inquiryId)}/verify`);
           out.replaceChildren(
             h('p', { class: 'text-muted' }, `Strathbites user ${d.claimant.strathbitesUserId} · ${d.verification.locationId} · found ${d.item.dateFound}`),
             renderVerification(d.verification));
@@ -123,7 +104,7 @@
     try {
       const q = new URLSearchParams({ userId: userInput.value.trim(), locationId: locInput.value.trim() });
       if (dateInput.value) q.set('lostDate', dateInput.value);
-      const d = await callOurApi(`/claims/verify?${q}`, `manual check user ${userInput.value.trim()}`);
+      const d = await callOurApi(`/claims/verify?${q}`);
       result.replaceChildren(renderVerification(d));
     } catch (e) {
       result.replaceChildren(h('p', { class: 'error-message', role: 'alert' }, e.message || 'Partner data is unavailable right now.'));

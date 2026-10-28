@@ -33,6 +33,60 @@
     } catch (e) { render(box, [errorLine(e)]); handleAuthLoss(); }
   }
 
+  function initStudentStrathbitesAccount() {
+    const form = $('strathbitesAccountForm');
+    const input = $('studentStrathbitesUserId');
+    const error = $('strathbitesAccountError');
+    const status = $('strathbitesAccountStatus');
+    const saveButton = $('saveStrathbitesAccount');
+    const unlinkButton = $('unlinkStrathbitesAccount');
+
+    input.value = me.strathbitesUserId ?? '';
+    unlinkButton.hidden = me.strathbitesUserId === null || me.strathbitesUserId === undefined;
+
+    const saveLink = async (strathbitesUserId) => {
+      error.hidden = true;
+      status.hidden = true;
+      saveButton.disabled = true;
+      unlinkButton.disabled = true;
+      try {
+        const updatedUser = await LF.api('/auth/me', {
+          method: 'PATCH',
+          json: { strathbitesUserId },
+        });
+        LF.saveSession(LF.token(), updatedUser);
+        me.strathbitesUserId = updatedUser.strathbitesUserId;
+        input.value = updatedUser.strathbitesUserId ?? '';
+        unlinkButton.hidden = updatedUser.strathbitesUserId === null;
+        status.textContent = updatedUser.strathbitesUserId === null
+          ? 'Your Strathbites account has been unlinked.'
+          : 'Your Strathbites account is linked. Staff can now verify eligible claims.';
+        status.hidden = false;
+      } catch (e) {
+        error.textContent = e.message;
+        error.hidden = false;
+        handleAuthLoss();
+      } finally {
+        saveButton.disabled = false;
+        unlinkButton.disabled = false;
+      }
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!input.reportValidity()) return;
+      const userId = input.valueAsNumber;
+      if (!Number.isSafeInteger(userId) || userId < 1) {
+        error.textContent = 'Enter a valid positive whole-number Strathbites user ID.';
+        error.hidden = false;
+        return;
+      }
+      await saveLink(userId);
+    });
+
+    unlinkButton.addEventListener('click', () => saveLink(null));
+  }
+
   // ---------- Staff ----------
   async function loadReviewQueue() {
     const box = $('inquiriesContainer');
@@ -179,6 +233,7 @@
     loadMyItems();
   } else {
     studentBox.hidden = false;
+    initStudentStrathbitesAccount();
     loadMyClaims();
   }
 })();
