@@ -1,5 +1,7 @@
 const request = require('supertest');
 // Local run: tests hit your app. Partner run: BASE_URL=http://their-host:port npx jest
+// API-key enforcement is covered separately; endpoint tests run in local dev mode.
+if (!process.env.BASE_URL) process.env.API_KEY_MODE = 'off';
 const target = process.env.BASE_URL || require('../index');
 const api = () => request(target);
 

@@ -1,0 +1,112 @@
+{
+  "planHash": "448ac96f2b9041e4356410747c4dbbe4e2fa7714e12eaecf11279ba1a3421a23",
+  "phase": "standalone",
+  "recordedAtUtc": "2026-10-28T19:24:52.4874630Z",
+  "retryCount": 0,
+  "resetBaseline": false,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 43280,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "tests-pass",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E server@1.0.0 test\r\n\u003E jest --runInBand\r\n\r\n\r\nTest Suites: 7 passed, 7 total\r\nTests:       58 passed, 58 total\r\nSnapshots:   0 total\r\nTime:        18.69 s\r\nRan all test suites.\r\n",
+        "durationMs": 21197,
+        "testResults": {
+          "testFramework": "jest",
+          "runnerDetectedFrom": "package_json",
+          "testsTotal": 58,
+          "testsPassed": 58,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": false
+        }
+      },
+      {
+        "name": "health-endpoint-200",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\n{\u0022status\u0022:\u0022ok\u0022,\u0022database\u0022:\u0022connected\u0022}\n--- server output ---\n\r\n\u003E server@1.0.0 start\r\n\u003E node index.js\r\n\r\n\u25C7 injected env (12) from .env // tip: \u2318 multiple files { path: [\u0027.env.local\u0027, \u0027.env\u0027] }\r\n\u25C7 injected env (0) from ..\\..\\Lost_Found_System-main\\.env // tip: \u2318 suppress logs { quiet: true }\r\n\u25C7 injected env (0) from .env // tip: \u25C8 encrypted .env [www.dotenvx.com]\r\n[api-key] API_KEY_MODE=off: API keys are NOT being checked.\r\nServer running on port 5507\r\n",
+        "durationMs": 3561
+      },
+      {
+        "name": "openapi-contract-200",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\nopenapi: 3.0.0\ninfo:\n  title: Lost \u0026 Found Service API\n  version: 1.0.0\n  description: \u003E\n    Endpoints exposed by Team 10 (Lost \u0026 Found) for consumption by Team 11\n    (Inventory) to look up, search, and reconcile found items against\n    missing inventory records.\n\nservers:\n  - url: /\n    description: This server (works on Render and on localhost)\n  - url: https://api-programming.onrender.com\n    description: Public deployment (Render)\n  - url: http://localhost:5000\n    description: Local development\n\npaths:\n  /health:\n    get:\n      security:\n        - ApiKeyAuth: []\n      summary: Check API and database availability.\n      description: Requires a valid API key.\n      responses:\n        \u0027200\u0027:\n          description: API and database are available.\n          content:\n            application/json:\n              schema:\n                type: object\n                required: [status, database]\n                properties:\n                  status:\n                    type: string\n                    example: ok\n                  database:\n                    type: string\n                    example: connected\n        \u0027503\u0027:\n          description: API is running but the database is unavailable.\n          content:\n            application/json:\n              schema:\n                type: object\n                required: [status, database]\n                properties:\n                  status:\n                    type: string\n                    example: error\n                  database:\n                    type: string\n                    example: unavailable\n        \u0027401\u0027:\n          $ref: \u0027#/components/responses/Unauthorized\u0027\n        \u0027403\u0027:\n          $ref: \u0027#/components/responses/Forbidden\u0027\n        \u0027429\u0027:\n          $ref: \u0027#/components/responses/RateLimited\u0027\n\n  /found-items/{itemId}:\n    get:\n      security:\n        - ApiKeyAuth: []\n      summary: Retrieve a single found-item record by its ID.\n      description: Requires the \u0060items:read\u0060 API-key scope.\n      parameters:\n        - name: itemId\n          in: path\n          required: true\n          description: Unique identifier of the found item.\n          schema:\n            type: string\n            format: uuid\n            example: \u00227c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11\u0022\n      responses:\n        \u0027200\u0027:\n          description: Found item located successfully.\n          content:\n            application/json:\n              schema:\n                $ref: \u0027#/components/schemas/FoundItem\u0027\n              example:\n                itemId: \u00227c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11\u0022\n                status: \u0022unclaimed\u0022\n                location: \u0022Library, 2nd Floor Front Desk\u0022\n                dateFound: \u00222026-08-13T10:00:00Z\u0022\n                description: \u0022Black umbrella with wooden handle\u0022\n                category: \u0022personal-items\u0022\n        \u0027404\u0027:\n          description: No found item exists with the given ID (an ID that is not a valid UUID is treated as not found).\n          content:\n            application/json:\n              schema:\n                $ref: \u0027#/components/schemas/Error\u0027\n              example:\n                error: \u0022not_found\u0022\n                message: \u0022No found item exists with ID 7c3f2a10-9e21-4b3d-8a4a-2f6b1c9d0e11.\u0022\n        \u0027401\u0027:\n          $ref: \u0027#/components/responses/Unauthorized\u0027\n        \u0027403\u0027:\n          $ref: \u0027#/components/responses/Forbidden\u0027\n        \u0027429\u0027:\n          $ref: \u0027#/components/responses/RateLimited\u0027\n\n  /found-items:\n    get:\n      security:\n        - ApiKeyAuth: []\n      summary: \u003E\n        Browse, search, or sync the found-items table. Read-only \u2014\n        no create, update, or delete operations are exposed on this path.\n      description: Requires the \u0060items:read\u0060 API-key scope.\n      parameters:\n        - name: category\n          in: query\n          required: false\n          description: Filter found items by category. Used with \u0060keyword\u0060 when an exact ID match is uncertain.\n          schema:\n            type: string\n            enum: [electronics, personal-items, documents, clothing, keys, other]\n            example: \u0022electronics\u0022\n        - name: keyword\n \n\u2026[truncated]",
+        "durationMs": 41
+      }
+    ],
+    "executions": [
+      {
+        "source": "setup[0]",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "ci"
+        ],
+        "cwd": "c:\\Users\\lils0\\OneDrive - Strathmore University\\Documents\\Semester IV\\Internet Application Programming\\Lost_Found_System\\my-project\\server",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "tests-pass",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "test"
+        ],
+        "cwd": "c:\\Users\\lils0\\OneDrive - Strathmore University\\Documents\\Semester IV\\Internet Application Programming\\Lost_Found_System\\my-project\\server",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "health-endpoint-200",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "start"
+        ],
+        "cwd": "c:\\Users\\lils0\\OneDrive - Strathmore University\\Documents\\Semester IV\\Internet Application Programming\\Lost_Found_System\\my-project\\server",
+        "env": {
+          "API_KEY_MODE": "\u003Credacted\u003E",
+          "PORT": "5507"
+        },
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "openapi-contract-200",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "start"
+        ],
+        "cwd": "c:\\Users\\lils0\\OneDrive - Strathmore University\\Documents\\Semester IV\\Internet Application Programming\\Lost_Found_System\\my-project\\server",
+        "env": {
+          "API_KEY_MODE": "\u003Credacted\u003E",
+          "PORT": "5507"
+        },
+        "prependPath": [],
+        "platform": "win32"
+      }
+    ]
+  }
+}

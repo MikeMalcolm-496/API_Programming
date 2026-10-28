@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-10-28T19:12:00Z",
+  "generatedOnPlatform": "win32",
+  "projectType": "server",
+  "setup": [
+    {
+      "command": "npm",
+      "args": [
+        "ci"
+      ],
+      "timeoutSeconds": 600
+    }
+  ],
+  "assertions": [
+    {
+      "name": "tests-pass",
+      "kind": "process",
+      "command": "npm",
+      "args": [
+        "test"
+      ],
+      "verificationMethod": "test-results",
+      "expected": "0",
+      "timeoutSeconds": 300
+    },
+    {
+      "name": "health-endpoint-200",
+      "kind": "http-probe",
+      "startCommand": "npm",
+      "startArgs": [
+        "start"
+      ],
+      "env": {
+        "API_KEY_MODE": "off",
+        "PORT": "5507"
+      },
+      "url": "http://localhost:5507/health",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "openapi-contract-200",
+      "kind": "http-probe",
+      "startCommand": "npm",
+      "startArgs": [
+        "start"
+      ],
+      "env": {
+        "API_KEY_MODE": "off",
+        "PORT": "5507"
+      },
+      "url": "http://localhost:5507/openapi.yaml",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    }
+  ]
+}
