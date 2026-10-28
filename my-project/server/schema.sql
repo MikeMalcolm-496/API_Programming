@@ -8,37 +8,9 @@ CREATE TABLE IF NOT EXISTS users (
   hashed_password varchar NOT NULL,
   role varchar NOT NULL DEFAULT 'student',
   student_id varchar,
+  must_change_password boolean NOT NULL DEFAULT false,
   created_at timestamp NOT NULL DEFAULT now()
 );
-
-CREATE TABLE IF NOT EXISTS user_invitations (
-  id uuid PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
-  full_name varchar NOT NULL,
-  email varchar NOT NULL,
-  role varchar NOT NULL CHECK (role IN ('student', 'security', 'admin')),
-  student_id varchar,
-  strathbites_user_id integer,
-  token_hash char(64) NOT NULL UNIQUE,
-  created_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  expires_at timestamptz NOT NULL,
-  used_at timestamptz
-);
-CREATE UNIQUE INDEX IF NOT EXISTS user_invitations_pending_email_idx
-  ON user_invitations (lower(email)) WHERE used_at IS NULL;
-
-CREATE TABLE IF NOT EXISTS user_invitation_requests (
-  id uuid PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
-  email varchar NOT NULL,
-  status varchar NOT NULL DEFAULT 'pending'
-    CHECK (status IN ('pending', 'email_failed', 'emailed', 'rejected')),
-  created_at timestamptz NOT NULL DEFAULT now(),
-  reviewed_at timestamptz,
-  reviewed_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
-  invitation_id uuid REFERENCES user_invitations(id) ON DELETE SET NULL
-);
-CREATE UNIQUE INDEX IF NOT EXISTS user_invitation_requests_open_email_idx
-  ON user_invitation_requests (lower(email)) WHERE status IN ('pending', 'email_failed');
 
 CREATE TABLE IF NOT EXISTS found_items (
   id uuid PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),

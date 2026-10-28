@@ -10,7 +10,18 @@ function authenticate(req, res, next) {
   }
   try {
     const p = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: p.sub, role: p.role, email: p.email };
+    req.user = {
+      id: p.sub,
+      role: p.role,
+      email: p.email,
+      mustChangePassword: p.mustChangePassword === true,
+    };
+    if (
+      p.mustChangePassword === true &&
+      !(req.method === 'POST' && req.baseUrl === '/auth' && req.path === '/change-password')
+    ) {
+      return fail(res, 403, 'password_change_required', 'Change your temporary password before continuing.');
+    }
     return next();
   } catch (e) {
     return fail(res, 401, 'unauthorized', 'Invalid or expired token.');

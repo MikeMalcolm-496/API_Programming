@@ -13,11 +13,11 @@
 | `my-project/server/package.json` | Adds `seed`, `seed:reset`, `seed:sql` scripts and `jest` + `supertest` as dev dependencies so `npm test` runs from the server folder |
 | `my-project/server/.env.example` | The variables this zip needs |
 
-The seed data goes into the existing tables (`users`, `found_items`, `inquiries`, `inquiry_messages`). Applying the current schema also creates the admin invitation table.
+The seed data goes into the existing tables (`users`, `found_items`, `inquiries`, `inquiry_messages`). Applying the current schema adds the account password-change flag.
 
 ## Creating new accounts
 
-Public self-registration and the shared staff sign-up code have been disabled. Seed accounts are loaded by the database seeder; later users request an invitation on the registration page, then an admin reviews and approves from the dashboard. The system emails approved invitations using configured SMTP. Links are single-use and expire after 24 hours.
+There is no public registration or email flow. New users visit the Security Office, where an administrator creates their account from the dashboard and gives them the generated temporary password in person. Users must change it when they first log in.
 
 ## The accounts
 
@@ -69,7 +69,7 @@ Categories and statuses only use the values your `openapi.yaml` allows, so the T
      "seed:reset": "node scripts/seed-data.js --reset",
      "seed:sql": "node scripts/seed-data.js --sql"
      ```
-2. In `my-project/server/.env`, make sure `DATABASE_URL` and `JWT_SECRET` are configured. `STAFF_SIGNUP_CODE` is no longer used. Configure SMTP environment values for invitation email delivery as described in the README.
+2. In `my-project/server/.env`, make sure `DATABASE_URL` and `JWT_SECRET` are configured. `STAFF_SIGNUP_CODE` and SMTP environment values are not used.
 3. Install dependencies:
    ```powershell
    cd my-project/server

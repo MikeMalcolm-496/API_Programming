@@ -138,7 +138,7 @@ You get a **Verify claims with Strathbites** section listing Brian's claim with 
 | `my-project/server/migrations/002_strathbites_link.sql` | **New.** Adds `users.strathbites_user_id`, links the 3 seed students | Our user IDs (UUIDs) and Strathbites user IDs (integers) are different systems; we need the mapping |
 | `my-project/server/schema.sql` | Same column added at the end | Fresh databases get it too |
 | `my-project/server/routes/auth.js` | Register accepts optional `strathbitesUserId`; new `PATCH /auth/me` to link it later; user objects include it | So students can link their Strathbites account |
-| `frontend/dashboard.html`, `frontend/js/dashboard.js` | Admin invitations can optionally link a "Strathbites User ID" for any account role | A claimant may be a student or staff member |
+| `frontend/dashboard.html`, `frontend/js/dashboard.js` | Admin-created accounts can optionally link a "Strathbites User ID" for any account role | A claimant may be a student or staff member |
 | `frontend/js/strathbites.js` | Staff only. Lists claims with a Verify button, manual form prefilled with the item's cafeteria and date, console logging | Order history is personal data; students should not look up other people |
 | `frontend/js/app.js` | Uses `http://localhost:5000` when the page is opened from localhost (same rule `session.js` already had) | Before this, the item page loaded data from Render even when you were testing locally, so local items showed "not found" |
 | `my-project/server/verify.html` | Date field, reasons, "calls made" table, console logging | Demo page for the lecturer |

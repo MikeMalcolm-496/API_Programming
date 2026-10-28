@@ -60,7 +60,7 @@ async function main() {
     await client.query('BEGIN');
     await client.query('SELECT pg_advisory_xact_lock(735182, 1)');
     const { rows } = await client.query(`SELECT count(*)::int AS count FROM users WHERE role = 'admin'`);
-    if (rows[0].count > 0) throw new Error('An administrator already exists; use the admin invitation form instead.');
+    if (rows[0].count > 0) throw new Error('An administrator already exists; ask an administrator to create the account.');
 
     const passwordHash = await bcrypt.hash(password, 12);
     const created = await client.query(

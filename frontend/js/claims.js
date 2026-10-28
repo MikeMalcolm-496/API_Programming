@@ -68,7 +68,7 @@
   // ---- who is looking? ----
   if (!loggedIn) {
     claimForm.hidden = true;
-    setInfo('Want to claim this item? ', h('a', { href: 'login.html' }, 'Log in'), ' or ', h('a', { href: 'register.html' }, 'register'), ' first.');
+    setInfo('Want to claim this item? ', h('a', { href: 'login.html' }, 'Log in'), ' first. Visit the Security Office if you need an account.');
     return;
   }
 

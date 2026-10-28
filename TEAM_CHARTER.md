@@ -31,13 +31,13 @@ A. General Features (Accessible to Everyone)
     Details: View the detailed page for any specific item.
 
 B. Student Role
-    Account Management: Accept an administrator-issued invitation, log in, and log out.
+    Account Management: Visit the Security Office to have an administrator create an account, then log in and change the temporary password.
     Claim Process: Submit a claim/inquiry regarding a specific found item.
     Messaging: Send and receive messages (presumably regarding claims).
     Dashboard: View a personal list of "My Claims" on their dashboard.
 
 C. Security / Admin Role
-    Account Management: Log in and out. Administrators create accounts by issuing single-use invitations.
+    Account Management: Log in and out. Administrators create accounts for users met in person and provide temporary passwords directly.
     Posting Items: Add new found items to the system, including uploading images.
     Item Management: View a personal list of "My Posted Items." Note: While the notes reference "My Posted Items", this is a dashboard view for Admins/Security to manage the items they have entered.
     Claims & Inquiries:

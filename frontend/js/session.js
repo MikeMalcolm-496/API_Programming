@@ -1,4 +1,4 @@
-// Session + API helper for login / register / dashboard / item-detail.
+// Session + API helper for login / password change / dashboard / item-detail.
 // Wrapped in an IIFE so it can load alongside app.js (which declares its own API_BASE).
 (() => {
   const meta = document.querySelector('meta[name="api-base"]');
@@ -68,14 +68,19 @@
       const onDash = window.location.pathname.endsWith('dashboard.html');
       const logoutBtn = h('button', { class: 'btn btn-outline', type: 'button' }, 'Logout');
       logoutBtn.addEventListener('click', () => { logout(); window.location.href = 'index.html'; });
-      nav.append(
-        h('li', {}, h('a', { href: 'dashboard.html', class: onDash ? 'active' : null }, 'Dashboard')),
-        h('li', {}, h('span', { class: 'user-greeting' }, `Hi, ${String(u.fullName).split(' ')[0]}`), logoutBtn)
-      );
+      if (u.mustChangePassword) {
+        nav.append(
+          h('li', {}, h('a', { href: 'change-password.html' }, 'Change password')),
+          h('li', {}, h('span', { class: 'user-greeting' }, `Hi, ${String(u.fullName).split(' ')[0]}`), logoutBtn)
+        );
+      } else {
+        nav.append(
+          h('li', {}, h('a', { href: 'dashboard.html', class: onDash ? 'active' : null }, 'Dashboard')),
+          h('li', {}, h('span', { class: 'user-greeting' }, `Hi, ${String(u.fullName).split(' ')[0]}`), logoutBtn)
+        );
+      }
     } else {
-      nav.append(h('li', {},
-        h('a', { href: 'login.html', class: 'btn btn-outline' }, 'Login'),
-        h('a', { href: 'register.html', class: 'btn btn-primary' }, 'Register')));
+      nav.append(h('li', {}, h('a', { href: 'login.html', class: 'btn btn-outline' }, 'Login')));
     }
   }
   document.addEventListener('DOMContentLoaded', renderNav);

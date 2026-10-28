@@ -14,7 +14,7 @@ The static browser UI is in `frontend/`. Serve that folder over HTTP (for exampl
 
 The UI uses the read-only `GET /found-items` and `GET /found-items/{itemId}` endpoints. Its category and status filters use the values in `my-project/server/openapi.yaml`; status filtering is performed in the browser because the list endpoint does not define a status query parameter. The default API base is `https://api-programming.onrender.com`. To use a local API instead, change the `api-base` meta value in both `frontend/index.html` and `frontend/item-detail.html` to `http://localhost:5000`.
 
-The public OpenAPI contract covers item browsing and integration routes. The web application also provides login, admin-managed account invitations, item posting, claims, and messaging through its authenticated routes.
+The public OpenAPI contract covers item browsing and integration routes. The web application also provides login, admin-created accounts, item posting, claims, and messaging through its authenticated routes.
 
 ## Base URL
 
@@ -129,11 +129,9 @@ Authenticated students, security staff, and administrators can submit item claim
 
 ### Admin-only account creation
 
-Public account creation is disabled. The legacy `POST /auth/register` endpoint returns `403`. On the registration page, a person can submit their email address to request an invitation. An administrator reviews the request, assigns a name and role, and approves it from the dashboard; the app then emails a single-use invite link, valid for 24 hours. Admins can also directly create and email invitations from the same dashboard.
+There is no public registration. New users visit the Security Office, where an administrator creates their account from the dashboard. The app generates a temporary password for the administrator to give to the user in person. On first login, the user must choose a new password before accessing the rest of the system. No email configuration or delivery is required.
 
-SMTP delivery requires these server environment variables: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, and `PUBLIC_APP_URL` (the public base URL serving `frontend/`). `SMTP_SECURE=true` can enable implicit TLS; port 465 enables it automatically. Set these values in the hosting provider's secret/environment settings, not in source control. If SMTP fails, no usable invitation remains active and the admin can retry an email-failed request.
-
-For a fresh database, apply `schema.sql` and the numbered migrations, including `004_claim_approval_audit.sql`, `005_admin_user_invitations.sql`, and `006_invitation_requests.sql`. To bootstrap the first admin, configure the database connection in `my-project/server/.env`, then run `node scripts/create-first-admin.js` from `my-project/server` in an interactive terminal. The script prompts for the initial admin's details, hides the password as it is typed, and refuses to create another initial admin once one exists. After that, create all accounts through admin invitations.
+For a fresh database, apply `schema.sql` and the numbered migrations through `007_admin_created_accounts.sql`. Existing databases must apply `my-project/server/migrations/007_admin_created_accounts.sql`; it adds the first-login password-change flag and removes the obsolete invitation tables. To bootstrap the first admin, configure the database connection in `my-project/server/.env`, then run `node scripts/create-first-admin.js` from `my-project/server` in an interactive terminal. The script prompts for the initial admin's details, hides the password as it is typed, and refuses to create another initial admin once one exists. After that, admins create all accounts from the dashboard.
 
 ## Rate Limiting
 

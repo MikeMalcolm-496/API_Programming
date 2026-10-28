@@ -1,4 +1,4 @@
-// Login and register pages.
+// Login and first-login password change.
 (() => {
   const $ = (id) => document.getElementById(id);
   const showError = (el, msg) => { el.textContent = msg; el.hidden = false; };
@@ -17,7 +17,7 @@
           json: { email: $('email').value, password: $('password').value },
         });
         LF.saveSession(data.token, data.user);
-        window.location.href = 'dashboard.html';
+        window.location.href = data.user.mustChangePassword ? 'change-password.html' : 'dashboard.html';
       } catch (e) {
         showError(error, e.message);
       } finally {
@@ -26,62 +26,36 @@
     });
   }
 
-  const acceptInviteForm = $('acceptInviteForm');
-  if (acceptInviteForm) {
-    const token = new URLSearchParams(window.location.search).get('token');
-    const error = $('inviteError');
-    const success = $('inviteSuccess');
-    const button = acceptInviteForm.querySelector('button[type="submit"]');
-    if (!token) {
-      showError(error, 'This invitation link is missing its token. Ask an administrator for a new link.');
+  const changePasswordForm = $('changePasswordForm');
+  if (changePasswordForm) {
+    const error = $('changePasswordError');
+    const success = $('changePasswordSuccess');
+    const button = changePasswordForm.querySelector('button[type="submit"]');
+    if (!LF.token()) {
+      showError(error, 'Log in with the temporary password provided by the administrator first.');
       button.disabled = true;
-    } else window.history.replaceState(null, '', window.location.pathname);
+    }
 
-    acceptInviteForm.addEventListener('submit', async (event) => {
+    changePasswordForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       error.hidden = true;
       success.hidden = true;
-      if ($('password').value !== $('confirmPassword').value) {
+      if ($('newPassword').value !== $('confirmNewPassword').value) {
         showError(error, 'Passwords do not match.');
         return;
       }
       button.disabled = true;
       try {
-        await LF.api('/auth/accept-invite', {
+        const data = await LF.api('/auth/change-password', {
           method: 'POST',
-          json: { token, password: $('password').value },
+          json: { password: $('newPassword').value },
         });
-        success.textContent = 'Your account is active. You can now log in.';
+        LF.saveSession(data.token, data.user);
+        success.textContent = 'Password changed. Your account is ready.';
         success.hidden = false;
-        acceptInviteForm.querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
+        window.location.href = 'dashboard.html';
       } catch (e) {
         showError(error, e.message);
-        button.disabled = false;
-      }
-    });
-  }
-
-  const requestInviteForm = $('requestInviteForm');
-  if (requestInviteForm) {
-    requestInviteForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const error = $('requestInviteError');
-      const success = $('requestInviteSuccess');
-      const button = requestInviteForm.querySelector('button[type="submit"]');
-      error.hidden = true;
-      success.hidden = true;
-      button.disabled = true;
-      try {
-        const result = await LF.api('/auth/invitation-requests', {
-          method: 'POST',
-          json: { email: $('requestInviteEmail').value },
-        });
-        success.textContent = result.message;
-        success.hidden = false;
-        requestInviteForm.reset();
-      } catch (e) {
-        showError(error, e.message);
-      } finally {
         button.disabled = false;
       }
     });
