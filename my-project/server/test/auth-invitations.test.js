@@ -43,6 +43,8 @@ describe('admin-managed account invitations', () => {
 
     expect(response.status).toBe(202);
     expect(response.body.message).toMatch(/if eligible/i);
+    expect(db.query.mock.calls[0][0]).toContain('SELECT $1::text WHERE NOT EXISTS');
+    expect(db.query.mock.calls[0][0]).toContain('lower(email) = $1::text');
     expect(db.query.mock.calls[0][1]).toEqual(['new.user@example.test']);
   });
 

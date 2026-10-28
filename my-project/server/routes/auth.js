@@ -53,7 +53,7 @@ router.post('/invitation-requests', async (req, res) => {
   try {
     await db.query(
       `INSERT INTO user_invitation_requests (email)
-       SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM users WHERE lower(email) = $1)
+       SELECT $1::text WHERE NOT EXISTS (SELECT 1 FROM users WHERE lower(email) = $1::text)
        ON CONFLICT DO NOTHING`,
       [email.trim().toLowerCase()]);
     return res.status(202).json({
