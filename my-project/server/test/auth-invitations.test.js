@@ -46,6 +46,28 @@ describe('admin-managed account invitations', () => {
     expect(db.query.mock.calls[0][1]).toEqual(['new.user@example.test']);
   });
 
+  it('explains when the invitation-request database migration is missing', async () => {
+    db.query.mockRejectedValueOnce({ code: '42P01' });
+
+    const response = await request(app)
+      .post('/auth/invitation-requests')
+      .send({ email: 'person@example.test' });
+
+    expect(response.status).toBe(503);
+    expect(response.body.message).toMatch(/not set up on this server/i);
+  });
+
+  it('reports database connection failures as temporary unavailability', async () => {
+    db.query.mockRejectedValueOnce({ code: 'ETIMEDOUT' });
+
+    const response = await request(app)
+      .post('/auth/invitation-requests')
+      .send({ email: 'person@example.test' });
+
+    expect(response.status).toBe(503);
+    expect(response.body.message).toMatch(/temporarily unavailable/i);
+  });
+
   it('disables public account registration', async () => {
     const response = await request(app).post('/auth/register').send({
       fullName: 'Uninvited User',

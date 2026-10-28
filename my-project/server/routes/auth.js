@@ -60,6 +60,14 @@ router.post('/invitation-requests', async (req, res) => {
       message: 'If eligible, your request will be reviewed by an administrator. You will receive an email if an invitation is approved.',
     });
   } catch (err) {
+    if (err.code === '42P01') {
+      console.error('Invitation request table is missing; apply migration 006_invitation_requests.sql.');
+      return fail(res, 503, 'service_unavailable', 'Invitation requests are not set up on this server yet. Please contact the administrator.');
+    }
+    if (['ETIMEDOUT', 'ECONNREFUSED', 'ENETUNREACH', 'ECONNRESET', 'EHOSTUNREACH'].includes(err.code)) {
+      console.error(`Invitation request database connection failed (${err.code}).`);
+      return fail(res, 503, 'service_unavailable', 'The invitation service is temporarily unavailable. Please try again later.');
+    }
     return serverError(res, err);
   }
 });
