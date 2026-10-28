@@ -42,6 +42,46 @@ const hashKey = (key) =>
 const generateKey = () =>
   `${KEY_PREFIX}${crypto.randomBytes(32).toString('base64url')}`;
 
+async function insertKeyViaSupabaseRest(apiKey, { name, scopes, createdBy, expiresAt }) {
+  const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env;
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    throw new Error('Supabase REST fallback requires SUPABASE_URL and SUPABASE_SERVICE_KEY.');
+  }
+
+  const url = new URL('/rest/v1/api_keys', SUPABASE_URL);
+  url.searchParams.set(
+    'select',
+    'id,name,key_prefix,key_hash,scopes,created_at,created_by_user_id,expires_at,revoked_at,last_used_at,usage_count'
+  );
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify({
+      name,
+      key_prefix: apiKey.slice(0, PREFIX_LEN),
+      key_hash: hashKey(apiKey),
+      scopes,
+      created_by_user_id: createdBy,
+      expires_at: expiresAt,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase REST fallback failed with HTTP ${response.status}: ${await response.text()}`);
+  }
+
+  const rows = await response.json();
+  if (!Array.isArray(rows) || !rows[0]) {
+    throw new Error('Supabase REST fallback did not return the created API key record.');
+  }
+  return rows[0];
+}
+
 const looksLikeKey = (k) =>
   typeof k === 'string' &&
   k.startsWith(KEY_PREFIX) &&
@@ -84,7 +124,13 @@ function validateScopes(scopes) {
 }
 
 // Returns the plaintext API key once, alongside its public record.
-async function createKey({ name, scopes, expiresInDays, createdBy = null }) {
+async function createKey({
+  name,
+  scopes,
+  expiresInDays,
+  createdBy = null,
+  useSupabaseFallback = false,
+}) {
   if (typeof name !== 'string' || !name.trim()) {
     throw Object.assign(new Error('name is required.'), { status: 400 });
   }
@@ -116,24 +162,44 @@ async function createKey({ name, scopes, expiresInDays, createdBy = null }) {
 
   const apiKey = generateKey();
 
-  const { rows } = await pool.query(
-    `INSERT INTO api_keys
-       (name, key_prefix, key_hash, scopes, created_by_user_id, expires_at)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     RETURNING id, name, key_prefix, key_hash, scopes, created_at,
-               created_by_user_id, expires_at, revoked_at,
-               last_used_at, usage_count`,
-    [
-      name.trim(),
-      apiKey.slice(0, PREFIX_LEN),
-      hashKey(apiKey),
-      sc.value,
+  let record;
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO api_keys
+         (name, key_prefix, key_hash, scopes, created_by_user_id, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, name, key_prefix, key_hash, scopes, created_at,
+                 created_by_user_id, expires_at, revoked_at,
+                 last_used_at, usage_count`,
+      [
+        name.trim(),
+        apiKey.slice(0, PREFIX_LEN),
+        hashKey(apiKey),
+        sc.value,
+        createdBy,
+        expiresAt,
+      ]
+    );
+    record = rows[0];
+  } catch (error) {
+    const networkErrorCodes = new Set([
+      'ETIMEDOUT',
+      'ECONNREFUSED',
+      'ENETUNREACH',
+      'EHOSTUNREACH',
+      'EAI_AGAIN',
+    ]);
+    if (!useSupabaseFallback || !networkErrorCodes.has(error.code)) throw error;
+    console.warn('[api-key] PostgreSQL is unreachable; creating the key through Supabase REST.');
+    record = await insertKeyViaSupabaseRest(apiKey, {
+      name: name.trim(),
+      scopes: sc.value,
       createdBy,
       expiresAt,
-    ]
-  );
+    });
+  }
 
-  return { apiKey, record: publicKey(rows[0]) };
+  return { apiKey, record: publicKey(record) };
 }
 
 async function listKeys() {

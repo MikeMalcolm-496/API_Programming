@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// API key manager (talks to the database directly, so it works even before any admin exists).
+// API key manager (works before any admin exists; create can fall back to Supabase REST).
 //
 //   node scripts/api-keys.js create --name "Team 11 sync service" [--scopes items:read,items:batch,checks:write] [--expires 90]
 //   node scripts/api-keys.js list
@@ -51,7 +51,12 @@ async function testKey(key) {
       console.table(keys.SCOPES);
     } else if (cmd === 'create') {
       const scopes = flag('--scopes') ? flag('--scopes').split(',').map((s) => s.trim()).filter(Boolean) : undefined;
-      const { apiKey, record } = await keys.createKey({ name: flag('--name'), scopes, expiresInDays: flag('--expires') });
+      const { apiKey, record } = await keys.createKey({
+        name: flag('--name'),
+        scopes,
+        expiresInDays: flag('--expires'),
+        useSupabaseFallback: true,
+      });
       console.log('\nAPI key created. Copy it NOW - it is stored only as a hash and cannot be shown again:\n');
       console.log(`    ${apiKey}\n`);
       console.table([{ id: record.id, name: record.name, prefix: record.keyPrefix, scopes: record.scopes.join(' '), expires: record.expiresAt || 'never' }]);
@@ -81,7 +86,10 @@ async function testKey(key) {
   }
   return undefined;
 })().catch((e) => {
-  console.error(`Error: ${e.message}`);
-  if (e.code === '42P01') console.error('The api_keys table is missing. Run migrations/003_api_keys.sql first.');
+  const message = e instanceof Error ? e.message : String(e);
+  const code = e && typeof e === 'object' && 'code' in e ? e.code : undefined;
+  console.error(`Error: ${message || code || 'Unknown error'}`);
+  if (e instanceof Error && !message) console.error(e.stack);
+  if (code === '42P01') console.error('The api_keys table is missing. Run migrations/003_api_keys.sql first.');
   process.exit(1);
 });
