@@ -14,7 +14,8 @@
   const render = (container, nodes) => container.replaceChildren(...nodes);
   const handleAuthLoss = () => { if (!LF.token()) window.location.href = 'login.html'; };
   const badge = (status) => h('span', { class: `item-status status-${status}` }, status);
-  const threadLink = (i) => h('a', { href: `item-detail.html?id=${encodeURIComponent(i.itemId)}&inquiry=${encodeURIComponent(i.inquiryId)}` }, 'Open item & messages');
+  const threadLink = (i) => h('a', { href: `item-detail.html?id=${encodeURIComponent(i.itemId)}&inquiry=${encodeURIComponent(i.inquiryId)}` },
+    LF.isStaff(me) ? 'Review claim, messages & Strathbites verification' : 'Open item & messages');
 
   // ---------- Student ----------
   async function loadMyClaims() {
@@ -124,9 +125,65 @@
     });
   }
 
-  $('dashboardRoleInfo').textContent = LF.isStaff(me) ? 'Security Staff Dashboard' : 'Student Dashboard';
+  function initAdminInvitations() {
+    if (me.role !== 'admin') return;
+    const section = $('adminAccountsSection');
+    const form = $('inviteUserForm');
+    const error = $('inviteUserError');
+    const result = $('inviteUserResult');
+    section.hidden = false;
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      error.hidden = true;
+      result.hidden = true;
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      try {
+        const invite = await LF.api('/auth/admin/invitations', {
+          method: 'POST',
+          json: {
+            fullName: $('inviteFullName').value,
+            email: $('inviteEmail').value,
+            role: $('inviteRole').value,
+            studentId: $('inviteStudentId').value || undefined,
+            strathbitesUserId: $('inviteStrathbitesId').value
+              ? Number($('inviteStrathbitesId').value) : undefined,
+          },
+        });
+        const link = new URL('accept-invite.html', window.location.href);
+        link.searchParams.set('token', invite.token);
+        const linkInput = h('input', { type: 'url', readonly: true, value: link.href, 'aria-label': 'One-time invitation link' });
+        const copy = h('button', { class: 'btn btn-outline', type: 'button' }, 'Copy invitation link');
+        copy.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(link.href);
+            copy.textContent = 'Copied';
+          } catch (e) {
+            error.textContent = 'Could not copy the link automatically. Select and copy the link above.';
+            error.hidden = false;
+          }
+        });
+        result.replaceChildren(
+          h('p', {}, `Invitation created for ${invite.email}. It expires ${LF.formatDateTime(invite.expiresAt)}. Share it securely; it can be used once.`),
+          linkInput,
+          copy);
+        result.hidden = false;
+        form.reset();
+      } catch (e) {
+        error.textContent = e.message;
+        error.hidden = false;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+
+  $('dashboardRoleInfo').textContent = me.role === 'admin'
+    ? 'Administrator Dashboard'
+    : LF.isStaff(me) ? 'Security Staff Dashboard' : 'Student Dashboard';
   if (LF.isStaff(me)) {
     securityBox.hidden = false;
+    initAdminInvitations();
     initPostForm();
     loadReviewQueue();
     loadMyItems();

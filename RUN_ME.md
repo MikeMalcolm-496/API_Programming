@@ -1,13 +1,13 @@
 # Run order (PowerShell, from this folder)
 
 1. **.env** in `my-project/server/` (compare with `.env.example`). Keep ONE `DATABASE_URL` line (the real Supabase one),
-   set `STAFF_SIGNUP_CODE=STRATH-LF-STAFF-2026`, set `PARTNER_URL` to Strathbites' current tunnel (ending `/api`),
+   set `PARTNER_URL` to Strathbites' current tunnel (ending `/api`),
    and `PARTNER_API_KEY` to the key they issued you.
 2. **Install:** `cd my-project/server` then `npm install`
-3. **Tables:** run `schema.sql`, then `migrations/002_strathbites_link.sql`, then `migrations/003_api_keys.sql`
+3. **Tables:** run `schema.sql`, then migrations `002_strathbites_link.sql` through `005_admin_user_invitations.sql`
    in the Supabase SQL editor (all are safe to re-run).
 4. **Load the data:** `npm run seed`  (or paste `data/seed_data.sql` into the Supabase SQL editor)
-   Logins and the staff code are listed in `data/ACCOUNTS.md`.
+   Seed logins are listed in `data/ACCOUNTS.md`. For a fresh installation without a seeded admin, bootstrap the first admin with `node scripts/create-first-admin.js` from the server directory. Existing admins create all later accounts from the dashboard and securely share the one-time invitation link.
 5. **Start the API:** `npm start`  (it must print "Server running on port 5000" and stay open)
 6. **Check locally:** `curl.exe -i http://localhost:5000/health`  then  `curl.exe http://localhost:5000/found-items`
 7. **Only now start the tunnel (second terminal):** `cloudflared tunnel --url http://localhost:5000`

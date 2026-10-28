@@ -26,23 +26,19 @@
     });
   }
 
-  const registerForm = $('registerForm');
-  if (registerForm) {
-    const role = $('role');
-    const staffGroup = $('staffCodeGroup');
-    const sbGroup = $('strathbitesGroup');
-    const syncRole = () => {
-      staffGroup.hidden = role.value === 'student';
-      if (sbGroup) sbGroup.hidden = role.value !== 'student';
-    };
-    role.addEventListener('change', syncRole);
-    syncRole();
+  const acceptInviteForm = $('acceptInviteForm');
+  if (acceptInviteForm) {
+    const token = new URLSearchParams(window.location.search).get('token');
+    const error = $('inviteError');
+    const success = $('inviteSuccess');
+    const button = acceptInviteForm.querySelector('button[type="submit"]');
+    if (!token) {
+      showError(error, 'This invitation link is missing its token. Ask an administrator for a new link.');
+      button.disabled = true;
+    } else window.history.replaceState(null, '', window.location.pathname);
 
-    registerForm.addEventListener('submit', async (event) => {
+    acceptInviteForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const error = $('registerError');
-      const success = $('registerSuccess');
-      const button = registerForm.querySelector('button[type="submit"]');
       error.hidden = true;
       success.hidden = true;
       if ($('password').value !== $('confirmPassword').value) {
@@ -51,22 +47,13 @@
       }
       button.disabled = true;
       try {
-        await LF.api('/auth/register', {
+        await LF.api('/auth/accept-invite', {
           method: 'POST',
-          json: {
-            fullName: $('fullName').value,
-            email: $('email').value,
-            password: $('password').value,
-            role: role.value,
-            studentId: $('studentId').value || undefined,
-            staffCode: role.value === 'student' ? undefined : $('staffCode').value,
-            strathbitesUserId: role.value === 'student' && $('strathbitesUserId') && $('strathbitesUserId').value
-              ? Number($('strathbitesUserId').value) : undefined,
-          },
+          json: { token, password: $('password').value },
         });
-        success.textContent = 'Account created. Redirecting to login...';
+        success.textContent = 'Your account is active. You can now log in.';
         success.hidden = false;
-        window.setTimeout(() => { window.location.href = 'login.html'; }, 1200);
+        acceptInviteForm.querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
       } catch (e) {
         showError(error, e.message);
         button.disabled = false;

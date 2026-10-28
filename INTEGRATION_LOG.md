@@ -25,7 +25,7 @@ A claim verification feature. When someone claims a lost item, our server checks
 | 2 | One call could not give both time and place of an order | Contract's `fields` accepts only one value (`timestamp` or `location`) per request | Call both and join the two lists by order `id` | Contract design (partner), handled on our side |
 | 3 | Partner base URL is a temporary trycloudflare tunnel | Tunnel URL changes whenever the partner restarts it | URL kept in `.env`, never hardcoded, so it changes without a code edit | Partner setup, handled on our side |
 | 5 | Needed to know if the claimant was there on the day, not just ever | Strathbites has no date filter | Added `lostDate`; we compare each order's Nairobi (UTC+3) date with the date the item was found | Contract design (partner), handled on our side |
-| 6 | Our users and Strathbites users have different IDs | Two separate systems | Added `users.strathbites_user_id` (migration 002) and an optional field on registration | Our side |
+| 6 | Our users and Strathbites users have different IDs | Two separate systems | Added `users.strathbites_user_id` (migration 002) and an optional Strathbites ID field to admin-created invitations | Our side |
 | 4 | Downstream partner (Team 11) has not called our API yet | They have not sent requests or bug reports | Our API stays running; nothing to fix yet | N/A |
 
 ## Tested on purpose

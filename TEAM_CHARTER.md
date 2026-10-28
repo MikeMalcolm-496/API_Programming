@@ -12,8 +12,8 @@ This is a Lost & Found platform for Strathmore University — a web app that con
 How it works:
 Security staff find an item on campus, log in, and post it to the platform — title, category, location found, date, description, and photos.
 Anyone can browse the public list of found items and filter by category or status (unclaimed, under review, claimed, closed).
-If a student recognizes something as theirs, they log in and submit a claim on that item, describing why it's theirs.
-Security staff review incoming claims, and can message back and forth with the claimant to verify ownership before approving or rejecting the claim.
+If an authenticated user recognizes something as theirs, they submit a claim on that item, describing why it's theirs.
+Security staff review incoming claims, and can message back and forth with the claimant to verify ownership before approving or rejecting the claim. A staff account cannot approve its own claim; each approval records the reviewing staff member.
 Once approved, the item's status gets updated and the case is resolved.
 --------------------------------------------------
 1. Database Structure
@@ -31,17 +31,17 @@ A. General Features (Accessible to Everyone)
     Details: View the detailed page for any specific item.
 
 B. Student Role
-    Account Management: Register, Log in, and Log out of the system.
+    Account Management: Accept an administrator-issued invitation, log in, and log out.
     Claim Process: Submit a claim/inquiry regarding a specific found item.
     Messaging: Send and receive messages (presumably regarding claims).
     Dashboard: View a personal list of "My Claims" on their dashboard.
 
 C. Security / Admin Role
-    Account Management: Register (with an admin role), Log in, and Log out.
+    Account Management: Log in and out. Administrators create accounts by issuing single-use invitations.
     Posting Items: Add new found items to the system, including uploading images.
     Item Management: View a personal list of "My Posted Items." Note: While the notes reference "My Posted Items", this is a dashboard view for Admins/Security to manage the items they have entered.
     Claims & Inquiries:
-    Review claims and inquiries submitted by students.
+    Review claims and inquiries submitted by users.
     Action: Approve or reject claims.
     Communication: Message claimants regarding their requests.
     Status Updates: Update the status of items in the system.

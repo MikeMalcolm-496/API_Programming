@@ -1,4 +1,4 @@
-# Zip 1: Seed Data (admins, security staff, staff code, 15 found items)
+# Seed Data (admins, security staff, 15 found items)
 
 ## What this zip gives you
 
@@ -7,28 +7,17 @@
 | `my-project/server/data/users.json` | 2 admins, 5 security staff and 3 students, with names, emails, passwords and school ID numbers |
 | `my-project/server/data/found-items.json` | 15 found items, each with title, category, exact location, date found, status, who logged it and a full description (colour, brand, marks, contents, where it is stored) |
 | `my-project/server/data/inquiries.json` | 3 sample claims (2 pending, 1 approved) with messages, so the staff dashboard is not empty |
-| `my-project/server/data/ACCOUNTS.md` | One table with every login and the staff sign-up code. **This is the file to open when you need a login.** |
+| `my-project/server/data/ACCOUNTS.md` | Demo logins for the seed accounts. |
 | `my-project/server/data/seed_data.sql` | The same data as plain SQL, for pasting into the Supabase SQL editor |
 | `my-project/server/scripts/seed-data.js` | Node script that loads the JSON into the database (hashes the passwords with bcrypt) |
 | `my-project/server/package.json` | Adds `seed`, `seed:reset`, `seed:sql` scripts and `jest` + `supertest` as dev dependencies so `npm test` runs from the server folder |
 | `my-project/server/.env.example` | The variables this zip needs |
 
-Nothing in your existing code was changed. The data goes into the tables you already have (`users`, `found_items`, `inquiries`, `inquiry_messages`), so no schema change is needed for this zip.
+The seed data goes into the existing tables (`users`, `found_items`, `inquiries`, `inquiry_messages`). Applying the current schema also creates the admin invitation table.
 
-## The staff sign-up code (the "code from the school")
+## Creating new accounts
 
-Your registration route (`routes/auth.js`) already refuses to create a **security** or **admin** account unless the request includes `staffCode` equal to `STAFF_SIGNUP_CODE` in `.env`. Right now your `my-project/server/.env` has the placeholder text `<a code you choose for staff>` as the value, which means the code is literally that text.
-
-Set it to the seed code:
-
-```env
-STAFF_SIGNUP_CODE=STRATH-LF-STAFF-2026
-```
-
-After that:
-- The 7 seed staff accounts are created directly by the seeder (they do not need the code).
-- Any new staff member who registers on `register.html` picks "Security Staff" or "Admin" and types `STRATH-LF-STAFF-2026` in the "Staff Sign-up Code" box. Without it they get `403 A valid staff sign-up code is required for this role.`
-- Students never need the code.
+Public self-registration and the shared staff sign-up code have been disabled. Seed accounts are loaded by the database seeder; all subsequent accounts must be invited by an existing administrator from the dashboard. Invitation links are single-use, expire after 24 hours, and must be shared privately.
 
 ## The accounts
 
@@ -80,7 +69,7 @@ Categories and statuses only use the values your `openapi.yaml` allows, so the T
      "seed:reset": "node scripts/seed-data.js --reset",
      "seed:sql": "node scripts/seed-data.js --sql"
      ```
-2. In `my-project/server/.env` set `STAFF_SIGNUP_CODE=STRATH-LF-STAFF-2026` (see `.env.example`). Make sure `DATABASE_URL` and `JWT_SECRET` are real values.
+2. In `my-project/server/.env`, make sure `DATABASE_URL` and `JWT_SECRET` are configured. `STAFF_SIGNUP_CODE` is no longer used.
 3. Install dependencies:
    ```powershell
    cd my-project/server

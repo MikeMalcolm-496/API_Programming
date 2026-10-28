@@ -24,6 +24,5 @@ const requireRole = (...roles) => (req, res, next) =>
     : fail(res, 403, 'forbidden', 'You do not have permission to perform this action.');
 
 const staffOnly = [authenticate, requireRole('security', 'admin')];
-const studentOnly = [authenticate, requireRole('student')];
 
-module.exports = { authenticate, requireRole, staffOnly, studentOnly };
+module.exports = { authenticate, requireRole, staffOnly };

@@ -14,7 +14,7 @@ The static browser UI is in `frontend/`. Serve that folder over HTTP (for exampl
 
 The UI uses the read-only `GET /found-items` and `GET /found-items/{itemId}` endpoints. Its category and status filters use the values in `my-project/server/openapi.yaml`; status filtering is performed in the browser because the list endpoint does not define a status query parameter. The default API base is `https://api-programming.onrender.com`. To use a local API instead, change the `api-base` meta value in both `frontend/index.html` and `frontend/item-detail.html` to `http://localhost:5000`.
 
-Login, registration, item posting, claims, and messaging are not available in the current HTTP API contract; their pages explain this rather than presenting non-functional forms.
+The public OpenAPI contract covers item browsing and integration routes. The web application also provides login, admin-managed account invitations, item posting, claims, and messaging through its authenticated routes.
 
 ## Base URL
 
@@ -123,11 +123,15 @@ These tests exercise the endpoint request/response behavior with a seeded databa
 
 ## Authentication
 
-The currently inspected found-item routes do not implement authentication middleware.
-
-Requests to these endpoints do not require an authentication token in the current implementation. Confirm with the team whether authentication is required before deploying the API for public use.
+Public item browsing remains available. Account actions (claims, messaging, and staff operations) require login, while partner integration endpoints are restricted to staff or API keys according to their route.
 
 Authenticated students, security staff, and administrators can submit item claims. Staff review and approve or reject claims; a staff account cannot approve a claim submitted by that same account. Approved claims record the reviewing user's ID and name in inquiry responses. Existing databases must apply `my-project/server/migrations/004_claim_approval_audit.sql` before deploying this change.
+
+### Admin-only account creation
+
+Public registration is disabled. The legacy `POST /auth/register` endpoint returns `403`; only an authenticated administrator can create a user invitation from the **Administer user accounts** section of the dashboard. Invitations can assign a student, security, or admin role and optionally link a student ID or Strathbites user ID. Each invitation is stored as a token hash, expires after 24 hours, and can be accepted only once. The administrator copies and securely shares the invitation link; the app does not currently send email.
+
+For a fresh database, apply `schema.sql` and the numbered migrations, including `004_claim_approval_audit.sql` and `005_admin_user_invitations.sql`. To bootstrap the first admin, configure the database connection in `my-project/server/.env`, then run `node scripts/create-first-admin.js` from `my-project/server` in an interactive terminal. The script prompts for the initial admin's details, hides the password as it is typed, and refuses to create another initial admin once one exists. After that, create all accounts through admin invitations.
 
 ## Rate Limiting
 

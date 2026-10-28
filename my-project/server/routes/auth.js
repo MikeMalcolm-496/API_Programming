@@ -2,14 +2,17 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { createHash, randomBytes } = require('crypto');
 const db = require('../db');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, requireRole } = require('../middleware/auth');
 const { fail, serverError, isNonEmptyString } = require('../lib/shared');
 
 const router = express.Router();
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ROLES = ['student', 'security', 'admin'];
+const adminOnly = [authenticate, requireRole('admin')];
+const hashInviteToken = (token) => createHash('sha256').update(token).digest('hex');
 
 // Only expose public user information.
 // Never include hashed_password or other private fields.
@@ -35,105 +38,119 @@ const parseStrathbitesId = (v) => {
     : { error: 'strathbitesUserId must be a positive whole number.' };
 };
 
-// POST /auth/register
-// Anyone can register as a student. Security/admin accounts need the
-// staff sign-up code (STAFF_SIGNUP_CODE in .env).
+// Public registration is disabled. User accounts are created through admin invites.
 router.post('/register', async (req, res) => {
+  return fail(res, 403, 'forbidden', 'Accounts can only be created by an administrator.');
+});
+
+// POST /auth/admin/invitations (administrator only)
+router.post('/admin/invitations', adminOnly, async (req, res) => {
+  const b = req.body || {};
+  if (!isNonEmptyString(b.fullName)) return fail(res, 400, 'invalid_request', 'fullName is required.');
+  if (!isNonEmptyString(b.email) || !EMAIL_RE.test(b.email.trim())) {
+    return fail(res, 400, 'invalid_request', 'A valid email is required.');
+  }
+  const role = b.role === undefined ? 'student' : b.role;
+  if (!ROLES.includes(role)) return fail(res, 400, 'invalid_request', `role must be one of: ${ROLES.join(', ')}.`);
+  const sb = parseStrathbitesId(b.strathbitesUserId);
+  if (sb.error) return fail(res, 400, 'invalid_request', sb.error);
+
+  const token = randomBytes(32).toString('base64url');
+  let client;
   try {
-    const b = req.body || {};
-
-    if (!isNonEmptyString(b.fullName)) {
-      return fail(res, 400, 'invalid_request', 'fullName is required.');
+    client = await db.connect();
+    await client.query('BEGIN');
+    const email = b.email.trim().toLowerCase();
+    const existingUser = await client.query('SELECT 1 FROM users WHERE lower(email) = $1', [email]);
+    if (existingUser.rowCount > 0) {
+      await client.query('ROLLBACK');
+      return fail(res, 409, 'conflict', 'An account already exists for this email.');
     }
-
-    if (!isNonEmptyString(b.email) || !EMAIL_RE.test(b.email.trim())) {
-      return fail(res, 400, 'invalid_request', 'A valid email is required.');
+    await client.query(
+      `UPDATE user_invitations SET used_at = now()
+       WHERE lower(email) = $1 AND used_at IS NULL AND expires_at <= now()`, [email]);
+    const existingInvite = await client.query(
+      `SELECT 1 FROM user_invitations
+       WHERE lower(email) = $1 AND used_at IS NULL AND expires_at > now()`, [email]);
+    if (existingInvite.rowCount > 0) {
+      await client.query('ROLLBACK');
+      return fail(res, 409, 'conflict', 'A valid invitation already exists for this email.');
     }
-
-    if (typeof b.password !== 'string' || b.password.length < 8) {
-      return fail(
-        res,
-        400,
-        'invalid_request',
-        'password must be at least 8 characters.'
-      );
-    }
-
-    const role = b.role === undefined ? 'student' : b.role;
-
-    if (!ROLES.includes(role)) {
-      return fail(
-        res,
-        400,
-        'invalid_request',
-        `role must be one of: ${ROLES.join(', ')}.`
-      );
-    }
-
-    if (role !== 'student') {
-      const code = process.env.STAFF_SIGNUP_CODE;
-
-      if (!code || b.staffCode !== code) {
-        return fail(
-          res,
-          403,
-          'forbidden',
-          'A valid staff sign-up code is required for this role.'
-        );
-      }
-    }
-
-    const sb = parseStrathbitesId(b.strathbitesUserId);
-
-    if (sb.error) {
-      return fail(res, 400, 'invalid_request', sb.error);
-    }
-
-    const hash = await bcrypt.hash(b.password, 10);
-
-    try {
-      const { rows } = await db.query(
-        `INSERT INTO users (
-           full_name,
-           email,
-           hashed_password,
-           role,
-           student_id,
-           strathbites_user_id
-         )
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING
-           id,
-           full_name,
-           email,
-           role,
-           student_id,
-           strathbites_user_id`,
-        [
-          b.fullName.trim(),
-          b.email.trim().toLowerCase(),
-          hash,
-          role,
-          isNonEmptyString(b.studentId) ? b.studentId.trim() : null,
-          sb.value ?? null,
-        ]
-      );
-
-      return res.status(201).json(publicUser(rows[0]));
-    } catch (e) {
-      if (e.code === '23505') {
-        return fail(
-          res,
-          409,
-          'conflict',
-          'Could not create account.'
-        );
-      }
-
-      throw e;
-    }
+    const inserted = await client.query(
+      `INSERT INTO user_invitations
+         (full_name, email, role, student_id, strathbites_user_id, token_hash, created_by_user_id, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, now() + interval '24 hours')
+       RETURNING expires_at`,
+      [
+        b.fullName.trim(),
+        email,
+        role,
+        isNonEmptyString(b.studentId) ? b.studentId.trim() : null,
+        sb.value ?? null,
+        hashInviteToken(token),
+        req.user.id,
+      ]);
+    await client.query('COMMIT');
+    return res.status(201).json({
+      email,
+      role,
+      token,
+      expiresAt: inserted.rows[0].expires_at,
+    });
   } catch (err) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (err.code === '23505') return fail(res, 409, 'conflict', 'An account or invitation already exists for this email.');
     return serverError(res, err);
+  } finally {
+    if (client) client.release();
+  }
+});
+
+// POST /auth/accept-invite (the invitation token is the sole authorization)
+router.post('/accept-invite', async (req, res) => {
+  const b = req.body || {};
+  if (!isNonEmptyString(b.token)) return fail(res, 400, 'invalid_request', 'Invitation token is required.');
+  if (typeof b.password !== 'string' || b.password.length < 8) {
+    return fail(res, 400, 'invalid_request', 'password must be at least 8 characters.');
+  }
+
+  let client;
+  try {
+    client = await db.connect();
+    await client.query('BEGIN');
+    const invite = await client.query(
+      `SELECT id, full_name, email, role, student_id, strathbites_user_id
+       FROM user_invitations
+       WHERE token_hash = $1 AND used_at IS NULL AND expires_at > now()
+       FOR UPDATE`,
+      [hashInviteToken(b.token)]);
+    if (invite.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return fail(res, 400, 'invalid_request', 'This invitation is invalid, expired, or already used.');
+    }
+    const invitation = invite.rows[0];
+    const passwordHash = await bcrypt.hash(b.password, 10);
+    const account = await client.query(
+      `INSERT INTO users (full_name, email, hashed_password, role, student_id, strathbites_user_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, full_name, email, role, student_id, strathbites_user_id`,
+      [
+        invitation.full_name,
+        invitation.email,
+        passwordHash,
+        invitation.role,
+        invitation.student_id,
+        invitation.strathbites_user_id,
+      ]);
+    await client.query('UPDATE user_invitations SET used_at = now() WHERE id = $1', [invitation.id]);
+    await client.query('COMMIT');
+    return res.status(201).json(publicUser(account.rows[0]));
+  } catch (err) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (err.code === '23505') return fail(res, 409, 'conflict', 'An account already exists for this email.');
+    return serverError(res, err);
+  } finally {
+    if (client) client.release();
   }
 });
 
@@ -274,4 +291,3 @@ router.patch('/me', authenticate, async (req, res) => {
 });
 
 module.exports = router;
-

@@ -606,6 +606,25 @@ a:hover {
     margin-bottom: 12px;
 }
 
+.strathbites-review-panel {
+    margin: 24px 0;
+    padding: 20px;
+    border: 2px solid var(--primary);
+    border-radius: var(--radius);
+    background: var(--gray-100);
+}
+
+.strathbites-review-panel h3 {
+    font-size: 1.3rem;
+}
+
+.strathbites-review-panel .strathbites-privacy-note {
+    padding: 10px 12px;
+    border-left: 4px solid var(--primary);
+    background: #fff;
+    font-weight: 600;
+}
+
 .messages-container {
     max-height: 300px;
     overflow-y: auto;

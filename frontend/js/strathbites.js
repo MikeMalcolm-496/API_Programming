@@ -70,8 +70,9 @@
 
   // ---------- section 1: claims on this item ----------
   const claimsBox = h('div', {});
-  const claimsCard = h('div', { class: 'inquiry-section', style: 'margin-top:24px' },
-    h('h3', {}, 'Verify claims with Strathbites'),
+  const claimsCard = h('div', { class: 'inquiry-section strathbites-review-panel', style: 'margin-top:24px' },
+    h('h3', {}, 'Strathbites claim verification'),
+    h('p', { class: 'strathbites-privacy-note' }, 'Staff-only review. Order history and verification details are not shown to claimants.'),
     h('p', { class: 'text-muted' }, 'Checks each claimant\'s Strathbites order history for the cafeteria where this item was found, on the day it was found.'),
     claimsBox);
 

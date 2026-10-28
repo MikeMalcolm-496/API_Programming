@@ -73,7 +73,7 @@
   }
 
   if (LF.isStaff(me)) {
-    claimSection.querySelector('h3').textContent = 'Claims on this item';
+    claimSection.querySelector('h3').textContent = 'Claims & Strathbites verification';
     try {
       const claims = await LF.api(`/found-items/${encodeURIComponent(itemId)}/inquiries`);
       if (!claims.length) { itemClaims.textContent = 'No claims have been submitted for this item yet.'; }
@@ -92,7 +92,7 @@
     const active = mine.find((c) => c.status !== 'rejected');
     claimForm.hidden = Boolean(active);
     if (active) {
-      setInfo(`Your claim is ${active.status}. Security staff will contact you here.`);
+      setInfo(`Your claim is ${active.status}. Reviewers will contact you here.`);
       openThread(active.inquiryId);
     } else if (mine.length) {
       setInfo('Your previous claim was rejected. You can submit a new one with more detail.');

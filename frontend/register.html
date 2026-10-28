@@ -24,52 +24,9 @@
 
     <main class="container auth-container">
         <div class="auth-card">
-            <h2>Create an Account</h2>
-            <p class="auth-subtitle">Join the Strathmore Lost &amp; Found community</p>
-
-            <form id="registerForm" class="auth-form">
-                <div class="form-group">
-                    <label for="fullName">Full Name</label>
-                    <input type="text" id="fullName" placeholder="Enter your full name" required />
-                </div>
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" placeholder="Enter your email" required />
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Create a password (min 8 characters)" required minlength="8" />
-                </div>
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
-                    <input type="password" id="confirmPassword" placeholder="Confirm your password" required />
-                </div>
-                <div class="form-group">
-                    <label for="studentId">Student ID (Optional)</label>
-                    <input type="text" id="studentId" placeholder="e.g., 123456" />
-                    <small class="form-hint">Only required if you are a student</small>
-                </div>
-                <div class="form-group" id="strathbitesGroup">
-                    <label for="strathbitesUserId">Strathbites User ID (Optional)</label>
-                    <input type="number" id="strathbitesUserId" min="1" step="1" placeholder="e.g., 3" />
-                    <small class="form-hint">Lets security confirm a claim using your cafeteria orders</small>
-                </div>
-                <div class="form-group">
-                    <label for="role">Register As</label>
-                    <select id="role" required>
-                        <option value="student">Student</option>
-                        <option value="security">Security Staff</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-                <div class="form-group" id="staffCodeGroup" hidden>
-                    <label for="staffCode">Staff Sign-up Code</label>
-                    <input type="password" id="staffCode" placeholder="Provided by the administrator" autocomplete="off" />
-                </div>
-                <div id="registerError" class="error-message" role="alert" hidden></div>
-                <div id="registerSuccess" class="success-message" role="status" hidden></div>
-                <button type="submit" class="btn btn-primary btn-block">Register</button>
-            </form>
+            <h2>Account registration</h2>
+            <p class="auth-subtitle">Accounts are created by a Lost &amp; Found administrator.</p>
+            <p>Ask your administrator for a one-time invitation link. The link expires after 24 hours and can only be used once.</p>
 
             <p class="auth-footer">
                 Already have an account? <a href="login.html">Login here</a>

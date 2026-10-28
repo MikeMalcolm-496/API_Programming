@@ -1,8 +1,6 @@
 # Seed logins (demo / testing only)
 
-Staff sign-up code (the "school code"): **`STRATH-LF-STAFF-2026`**
-Put it in `my-project/server/.env` as `STAFF_SIGNUP_CODE=STRATH-LF-STAFF-2026`.
-Anyone registering as **Security Staff** or **Admin** on `register.html` must type this code.
+These are demo credentials for accounts loaded by the database seeder. Public registration is disabled; administrators create later accounts through one-time invitation links.
 
 | Role | Name | Email | Password | School ID |
 |---|---|---|---|---|

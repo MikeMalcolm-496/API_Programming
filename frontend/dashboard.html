@@ -29,6 +29,45 @@
         </div>
 
         <div id="securityDashboard" hidden>
+            <section id="adminAccountsSection" class="dashboard-section" hidden>
+                <h2>Administer user accounts</h2>
+                <p class="text-muted">Create a one-time invitation for an approved student, staff member, or administrator. Share the link securely; it expires in 24 hours.</p>
+                <form id="inviteUserForm" class="form-card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inviteFullName">Full name</label>
+                            <input type="text" id="inviteFullName" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="inviteEmail">Email address</label>
+                            <input type="email" id="inviteEmail" required />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inviteRole">Account role</label>
+                            <select id="inviteRole" required>
+                                <option value="student">Student</option>
+                                <option value="security">Security staff</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="inviteStudentId">Student ID (optional)</label>
+                            <input type="text" id="inviteStudentId" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inviteStrathbitesId">Strathbites user ID (optional)</label>
+                        <input type="number" id="inviteStrathbitesId" min="1" step="1" />
+                        <small class="form-hint">Linking the producer account lets staff verify claims using its cafeteria records.</small>
+                    </div>
+                    <div id="inviteUserError" class="error-message" role="alert" hidden></div>
+                    <button type="submit" class="btn btn-primary">Create invitation</button>
+                </form>
+                <div id="inviteUserResult" class="info-message" role="status" hidden></div>
+            </section>
+
             <section class="dashboard-section">
                 <h2>Post New Found Item</h2>
                 <form id="postItemForm" class="form-card">
