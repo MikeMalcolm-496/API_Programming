@@ -1,6 +1,6 @@
 # Seed logins (demo / testing only)
 
-These are demo credentials for accounts loaded by the database seeder. There is no public registration; an administrator creates new accounts in person through the dashboard.
+These are demo credentials for accounts loaded by the database seeder. Public registration is disabled; administrators create later accounts through one-time invitation links.
 
 | Role | Name | Email | Password | School ID |
 |---|---|---|---|---|
