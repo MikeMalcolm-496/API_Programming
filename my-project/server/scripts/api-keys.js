@@ -1,14 +1,3 @@
-#!/usr/bin/env node
-// API key manager (works before any admin exists; create can fall back to Supabase REST).
-//
-//   node scripts/api-keys.js create --name "Team 11 sync service" [--scopes items:read,items:batch,checks:write] [--expires 90]
-//   node scripts/api-keys.js list
-//   node scripts/api-keys.js revoke <id | keyPrefix>
-//   node scripts/api-keys.js rotate <id | keyPrefix>
-//   node scripts/api-keys.js scopes
-//   node scripts/api-keys.js test <apiKey> [--server http://localhost:5000]    (calls GET /api-keys/me)
-//
-// npm shortcuts:  npm run apikey -- create --name "Team 11"
 
 const path = require('path');
 const fs = require('fs');
@@ -62,10 +51,12 @@ async function testKey(key) {
       console.table([{ id: record.id, name: record.name, prefix: record.keyPrefix, scopes: record.scopes.join(' '), expires: record.expiresAt || 'never' }]);
       console.log('Give it to the partner privately. They send it as the header:  X-API-Key: <key>');
     } else if (cmd === 'list') {
-      const list = await keys.listKeys();
+      const list = await keys.listKeys({ useSupabaseFallback: true });
       if (!list.length) console.log('No API keys yet. Create one with: node scripts/api-keys.js create --name "Team 11"');
       else console.table(list.map((k) => ({
         id: k.id, name: k.name, prefix: k.keyPrefix, status: k.status, scopes: k.scopes.join(' '),
+        currentFormat: k.keyPrefix.startsWith(keys.KEY_PREFIX) && k.scopes.every((scope) => Object.hasOwn(keys.SCOPES, scope))
+          ? 'yes' : 'no (legacy)',
         uses: k.usageCount, lastUsed: k.lastUsedAt ? new Date(k.lastUsedAt).toISOString() : '-',
       })));
     } else if (cmd === 'revoke') {
@@ -74,7 +65,7 @@ async function testKey(key) {
       console.log(k ? `Revoked ${k.keyPrefix}… (${k.name}). Calls with it now get 401.` : 'No key found with that id or prefix.');
     } else if (cmd === 'rotate') {
       if (!firstArg) throw new Error('Usage: rotate <id | keyPrefix>');
-      const fresh = await keys.rotateKey(firstArg);
+      const fresh = await keys.rotateKey(firstArg, { useSupabaseFallback: true });
       if (!fresh) console.log('No key found with that id or prefix.');
       else console.log(`Old key revoked. New key (copy it now):\n\n    ${fresh.apiKey}\n`);
     } else {
@@ -89,6 +80,10 @@ async function testKey(key) {
   const message = e instanceof Error ? e.message : String(e);
   const code = e && typeof e === 'object' && 'code' in e ? e.code : undefined;
   console.error(`Error: ${message || code || 'Unknown error'}`);
+  if (e && e.replacement) {
+    console.error('\nA replacement key was created, but the old key could not be revoked. Keep this key and revoke the old key manually:');
+    console.error(`    ${e.replacement.apiKey}`);
+  }
   if (e instanceof Error && !message) console.error(e.stack);
   if (code === '42P01') console.error('The api_keys table is missing. Run migrations/003_api_keys.sql first.');
   process.exit(1);

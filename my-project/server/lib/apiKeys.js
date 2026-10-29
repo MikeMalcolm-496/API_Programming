@@ -12,6 +12,7 @@ const pool = require('../db');
 
 const KEY_PREFIX = 'lfk_live_';
 const PREFIX_LEN = 16;
+const KEY_PATTERN = /^lfk_live_[A-Za-z0-9_-]{43}$/;
 
 const SCOPES = {
   'items:read': 'GET /found-items and GET /found-items/{itemId}',
@@ -21,6 +22,13 @@ const SCOPES = {
 };
 
 const DEFAULT_SCOPES = ['items:read', 'items:batch', 'checks:write'];
+const NETWORK_ERROR_CODES = new Set([
+  'ETIMEDOUT',
+  'ECONNREFUSED',
+  'ENETUNREACH',
+  'EHOSTUNREACH',
+  'EAI_AGAIN',
+]);
 
 const KEY_COLUMNS = `
   id,
@@ -51,7 +59,7 @@ async function insertKeyViaSupabaseRest(apiKey, { name, scopes, createdBy, expir
   const url = new URL('/rest/v1/api_keys', SUPABASE_URL);
   url.searchParams.set(
     'select',
-    'id,name,key_prefix,key_hash,scopes,created_at,created_by_user_id,expires_at,revoked_at,last_used_at,usage_count'
+    'id,name,key_prefix,scopes,created_at,created_by_user_id,expires_at,revoked_at,last_used_at,usage_count'
   );
   const response = await fetch(url, {
     method: 'POST',
@@ -82,11 +90,54 @@ async function insertKeyViaSupabaseRest(apiKey, { name, scopes, createdBy, expir
   return rows[0];
 }
 
-const looksLikeKey = (k) =>
-  typeof k === 'string' &&
-  k.startsWith(KEY_PREFIX) &&
-  k.length >= 40 &&
-  k.length <= 80;
+async function listKeysViaSupabaseRest() {
+  const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env;
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    throw new Error('Supabase REST fallback requires SUPABASE_URL and SUPABASE_SERVICE_KEY.');
+  }
+
+  const url = new URL('/rest/v1/api_keys', SUPABASE_URL);
+  url.searchParams.set(
+    'select',
+    'id,name,key_prefix,scopes,created_at,created_by_user_id,expires_at,revoked_at,last_used_at,usage_count'
+  );
+  url.searchParams.set('order', 'created_at.desc');
+
+  const keys = [];
+  let offset = 0;
+  const pageSize = 1000;
+  while (true) {
+    const response = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        Prefer: 'count=exact',
+        Range: `${offset}-${offset + pageSize - 1}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Supabase REST fallback failed with HTTP ${response.status}: ${await response.text()}`);
+    }
+
+    const rows = await response.json();
+    if (!Array.isArray(rows)) {
+      throw new Error('Supabase REST fallback returned an invalid API key list.');
+    }
+    keys.push(...rows);
+
+    const contentRange = response.headers.get('content-range');
+    const total = contentRange && Number(contentRange.split('/')[1]);
+    if (Number.isFinite(total)) {
+      offset += rows.length;
+      if (offset >= total || rows.length === 0) break;
+    } else {
+      if (rows.length < pageSize) break;
+      offset += rows.length;
+    }
+  }
+
+  return keys.map(publicKey);
+}
 
 const publicKey = (r) => ({
   id: r.id,
@@ -104,6 +155,81 @@ const publicKey = (r) => ({
       ? 'expired'
       : 'active',
 });
+
+async function findKeyViaSupabaseRest(idOrPrefix) {
+  const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env;
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    throw new Error('Supabase REST fallback requires SUPABASE_URL and SUPABASE_SERVICE_KEY.');
+  }
+
+  const url = new URL('/rest/v1/api_keys', SUPABASE_URL);
+  url.searchParams.set(
+    'select',
+    'id,name,key_prefix,scopes,created_at,created_by_user_id,expires_at,revoked_at,last_used_at,usage_count'
+  );
+  url.searchParams.set(/^[0-9a-f-]{36}$/i.test(idOrPrefix) ? 'id' : 'key_prefix', `eq.${idOrPrefix}`);
+  url.searchParams.set('limit', '2');
+
+  const response = await fetch(url, {
+    headers: {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`Supabase REST fallback failed with HTTP ${response.status}: ${await response.text()}`);
+  }
+
+  const rows = await response.json();
+  if (!Array.isArray(rows)) {
+    throw new Error('Supabase REST fallback returned an invalid API key record.');
+  }
+  if (rows.length > 1) {
+    throw Object.assign(new Error('More than one key has that prefix; use the id.'), { status: 409 });
+  }
+  return rows[0] || null;
+}
+
+async function revokeKeyViaSupabaseRest(id) {
+  const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env;
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    throw new Error('Supabase REST fallback requires SUPABASE_URL and SUPABASE_SERVICE_KEY.');
+  }
+
+  const url = new URL('/rest/v1/api_keys', SUPABASE_URL);
+  url.searchParams.set('id', `eq.${id}`);
+  url.searchParams.set(
+    'select',
+    'id,name,key_prefix,scopes,created_at,created_by_user_id,expires_at,revoked_at,last_used_at,usage_count'
+  );
+
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify({ revoked_at: new Date().toISOString() }),
+  });
+  if (!response.ok) {
+    throw new Error(`Supabase REST fallback failed with HTTP ${response.status}: ${await response.text()}`);
+  }
+
+  const rows = await response.json();
+  if (!Array.isArray(rows)) {
+    throw new Error('Supabase REST fallback did not return the revoked API key record.');
+  }
+  if (!rows[0]) {
+    const existing = await findKeyViaSupabaseRest(id);
+    if (existing) return existing;
+    throw new Error('Supabase REST fallback did not return the revoked API key record.');
+  }
+  return rows[0];
+}
+
+const looksLikeKey = (k) => typeof k === 'string' && KEY_PATTERN.test(k);
 
 function validateScopes(scopes) {
   const list = scopes === undefined ? DEFAULT_SCOPES : scopes;
@@ -182,14 +308,7 @@ async function createKey({
     );
     record = rows[0];
   } catch (error) {
-    const networkErrorCodes = new Set([
-      'ETIMEDOUT',
-      'ECONNREFUSED',
-      'ENETUNREACH',
-      'EHOSTUNREACH',
-      'EAI_AGAIN',
-    ]);
-    if (!useSupabaseFallback || !networkErrorCodes.has(error.code)) throw error;
+    if (!useSupabaseFallback || !NETWORK_ERROR_CODES.has(error.code)) throw error;
     console.warn('[api-key] PostgreSQL is unreachable; creating the key through Supabase REST.');
     record = await insertKeyViaSupabaseRest(apiKey, {
       name: name.trim(),
@@ -202,28 +321,40 @@ async function createKey({
   return { apiKey, record: publicKey(record) };
 }
 
-async function listKeys() {
-  const { rows } = await pool.query(
-    `SELECT id, name, key_prefix, scopes, created_at,
-            created_by_user_id, expires_at, revoked_at,
-            last_used_at, usage_count
-       FROM api_keys
-      ORDER BY created_at DESC`
-  );
-
-  return rows.map(publicKey);
+async function listKeys({ useSupabaseFallback = false } = {}) {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, name, key_prefix, scopes, created_at,
+              created_by_user_id, expires_at, revoked_at,
+              last_used_at, usage_count
+         FROM api_keys
+        ORDER BY created_at DESC`
+    );
+    return rows.map(publicKey);
+  } catch (error) {
+    if (!useSupabaseFallback || !NETWORK_ERROR_CODES.has(error.code)) throw error;
+    console.warn('[api-key] PostgreSQL is unreachable; listing keys through Supabase REST.');
+    return listKeysViaSupabaseRest();
+  }
 }
 
 // idOrPrefix: the key's UUID or its prefix.
-async function findKey(idOrPrefix) {
+async function findKey(idOrPrefix, { useSupabaseFallback = false } = {}) {
   const isUuid = /^[0-9a-f-]{36}$/i.test(idOrPrefix);
-
-  const { rows } = await pool.query(
-    isUuid
-      ? `SELECT ${KEY_COLUMNS} FROM api_keys WHERE id = $1`
-      : `SELECT ${KEY_COLUMNS} FROM api_keys WHERE key_prefix = $1`,
-    [idOrPrefix]
-  );
+  let rows;
+  try {
+    ({ rows } = await pool.query(
+      isUuid
+        ? `SELECT ${KEY_COLUMNS} FROM api_keys WHERE id = $1`
+        : `SELECT ${KEY_COLUMNS} FROM api_keys WHERE key_prefix = $1`,
+      [idOrPrefix]
+    ));
+  } catch (error) {
+    if (!useSupabaseFallback || !NETWORK_ERROR_CODES.has(error.code)) throw error;
+    console.warn('[api-key] PostgreSQL is unreachable; looking up the key through Supabase REST.');
+    const record = await findKeyViaSupabaseRest(idOrPrefix);
+    rows = record ? [record] : [];
+  }
 
   if (rows.length > 1) {
     throw Object.assign(
@@ -235,29 +366,45 @@ async function findKey(idOrPrefix) {
   return rows[0] || null;
 }
 
-async function revokeKey(idOrPrefix) {
-  const k = await findKey(idOrPrefix);
+async function revokeKey(idOrPrefix, { useSupabaseFallback = false } = {}) {
+  const k = await findKey(idOrPrefix, { useSupabaseFallback });
 
   if (!k) return null;
 
-  const { rows } = await pool.query(
-    `UPDATE api_keys
-        SET revoked_at = COALESCE(revoked_at, now())
-      WHERE id = $1
-      RETURNING id, name, key_prefix, scopes, created_at,
-                created_by_user_id, expires_at, revoked_at,
-                last_used_at, usage_count`,
-    [k.id]
-  );
+  let rows;
+  try {
+    ({ rows } = await pool.query(
+      `UPDATE api_keys
+          SET revoked_at = COALESCE(revoked_at, now())
+        WHERE id = $1
+        RETURNING id, name, key_prefix, scopes, created_at,
+                  created_by_user_id, expires_at, revoked_at,
+                  last_used_at, usage_count`,
+      [k.id]
+    ));
+  } catch (error) {
+    if (!useSupabaseFallback || !NETWORK_ERROR_CODES.has(error.code)) throw error;
+    console.warn('[api-key] PostgreSQL is unreachable; revoking the key through Supabase REST.');
+    const record = await revokeKeyViaSupabaseRest(k.id);
+    rows = [record];
+  }
 
   return publicKey(rows[0]);
 }
 
 // Rotation issues a new key and revokes the old one.
-async function rotateKey(idOrPrefix, createdBy = null) {
-  const old = await findKey(idOrPrefix);
+async function rotateKey(idOrPrefix, { createdBy = null, useSupabaseFallback = false } = {}) {
+  const old = await findKey(idOrPrefix, { useSupabaseFallback });
 
   if (!old) return null;
+
+  const scopes = old.scopes.filter((scope) => Object.hasOwn(SCOPES, scope));
+  if (!scopes.length) {
+    throw Object.assign(
+      new Error('This legacy key has no supported scopes; revoke it and create a replacement with current scopes.'),
+      { status: 400 }
+    );
+  }
 
   const days = old.expires_at
     ? Math.max(
@@ -270,12 +417,17 @@ async function rotateKey(idOrPrefix, createdBy = null) {
 
   const fresh = await createKey({
     name: old.name,
-    scopes: old.scopes,
+    scopes,
     expiresInDays: days,
     createdBy,
+    useSupabaseFallback,
   });
 
-  await revokeKey(old.id);
+  try {
+    await revokeKey(old.id, { useSupabaseFallback });
+  } catch (error) {
+    throw Object.assign(new Error(error.message, { cause: error }), { replacement: fresh });
+  }
 
   return fresh;
 }
@@ -323,6 +475,7 @@ module.exports = {
   SCOPES,
   DEFAULT_SCOPES,
   KEY_PREFIX,
+  KEY_PATTERN,
   generateKey,
   hashKey,
   createKey,

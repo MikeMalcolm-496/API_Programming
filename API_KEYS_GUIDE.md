@@ -186,7 +186,7 @@ npm run apikey -- revoke lfk_live_hyoxYhq
 
 The `--` after `npm run apikey` is needed so npm passes the arguments on to the script. `node scripts/api-keys.js create --name "Team 11"` does the same without npm.
 
-The CLI uses `DATABASE_URL` normally. If PostgreSQL is unreachable, `create` can use `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` over HTTPS instead. Listing, revoking, rotating, and server-side API-key verification still require PostgreSQL access.
+The CLI uses `DATABASE_URL` normally. If PostgreSQL is unreachable, `create`, `list`, `revoke`, and `rotate` can use `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` over HTTPS instead. Listing still only returns key metadata; it never reveals full key values. Server-side API-key verification requires PostgreSQL access.
 
 **Intended outcome of `create`:**
 
