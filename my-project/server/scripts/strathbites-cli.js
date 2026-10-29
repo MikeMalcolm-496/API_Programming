@@ -42,7 +42,7 @@ const show = (r) => {
 
 async function direct() {
   const sb = require('../lib/strathbites');
-  console.log(`Partner base URL: ${sb.partnerBase() || '(PARTNER_URL not set!)'}`);
+  console.log(`Partner API URL: ${sb.partnerApiBase() || '(PARTNER_URL not set!)'}`);
 
   line('1. GET /users/{id}/order-frequency');
   show(await sb.getOrderFrequency(userId, locationId));

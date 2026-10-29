@@ -28,7 +28,7 @@ Every result also has a `reasons` list in plain English, so staff can see *why*.
 
 **One file does every call:** `my-project/server/lib/strathbites.js`
 
-- `callStrathbites(path)` is the **only** function that sends an HTTP request to Strathbites. It builds `PARTNER_URL + path`, adds `X-API-Key` if `PARTNER_API_KEY` is set, applies an 8 second timeout and logs the call.
+- `callStrathbites(path)` is the **only** function that sends an HTTP request to Strathbites. It uses `PARTNER_URL` as the service base, appends `/api` unless the URL already ends in `/api`, adds `X-API-Key` from `PARTNER_API_KEY`, applies an 8 second timeout and logs the call.
 - `getOrderFrequency()` and `getOrders()` map one to one to their three endpoints.
 - `verifyClaimant()` calls all three in parallel (`Promise.all`), checks the responses match their contract, joins them and scores the claim.
 
@@ -104,10 +104,10 @@ Add `--server http://localhost:5000` to go through **our** API instead of straig
 **c) Raw curl.** Their endpoints, then ours:
 
 ```powershell
-# Straight to Strathbites
-curl.exe "https://designer-cadillac-curriculum-meetup.trycloudflare.com/api/users/3/order-frequency?locationId=cafe-3"
-curl.exe "https://designer-cadillac-curriculum-meetup.trycloudflare.com/api/orders?userId=3&fields=timestamp"
-curl.exe "https://designer-cadillac-curriculum-meetup.trycloudflare.com/api/orders?userId=3&fields=location"
+# Straight to Strathbites (keep the partner key on the server; do not expose it in browser code)
+curl.exe -H "X-API-Key: $env:PARTNER_API_KEY" "https://designer-cadillac-curriculum-meetup.trycloudflare.com/api/users/3/order-frequency?locationId=cafe-3"
+curl.exe -H "X-API-Key: $env:PARTNER_API_KEY" "https://designer-cadillac-curriculum-meetup.trycloudflare.com/api/orders?userId=3&fields=timestamp"
+curl.exe -H "X-API-Key: $env:PARTNER_API_KEY" "https://designer-cadillac-curriculum-meetup.trycloudflare.com/api/orders?userId=3&fields=location"
 
 # Through our server (which calls the three above)
 curl.exe "http://localhost:5000/claims/verify?userId=3&locationId=cafe-3&lostDate=2026-10-20"

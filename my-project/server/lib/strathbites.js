@@ -5,6 +5,10 @@ const NAIROBI_OFFSET_MS = 3 * 60 * 60 * 1000; // EAT = UTC+3, no daylight saving
 
 // Read at call time (not at startup) so tests and the CLI can point it elsewhere.
 const partnerBase = () => (process.env.PARTNER_URL || '').trim().replace(/\/+$/, '');
+const partnerApiBase = () => {
+  const base = partnerBase();
+  return base && !/\/api$/i.test(base) ? `${base}/api` : base;
+};
 const loggingOn = () => process.env.STRATHBITES_LOG !== 'off';
 const log = (...args) => { if (loggingOn()) console.log('[Strathbites]', ...args); };
 
@@ -30,7 +34,7 @@ function summarise(body) {
 // Returns { ok, status, body, url, ms }. Throws PartnerError(502) only when the
 // partner cannot be reached at all (tunnel down, wrong URL, timeout).
 async function callStrathbites(path) {
-  const base = partnerBase();
+  const base = partnerApiBase();
   if (!base) {
     console.error('[Strathbites] PARTNER_URL is not set in .env');
     throw new PartnerError(502, 'partner_unavailable', 'Partner data unavailable (PARTNER_URL not configured).');
@@ -183,5 +187,6 @@ async function verifyClaimant(userId, locationId, { lostDate, includeRaw = false
 }
 
 module.exports = {
-  callStrathbites, getOrderFrequency, getOrders, verifyClaimant, extractLocationId, nairobiDate, PartnerError, partnerBase,
+  callStrathbites, getOrderFrequency, getOrders, verifyClaimant, extractLocationId, nairobiDate,
+  PartnerError, partnerBase, partnerApiBase,
 };
