@@ -4,7 +4,7 @@ const path = require('path');
 
 const fs = require('fs');
 const dotenv = require('dotenv');
-const { monitor } = require('./middleware/monitoring');
+const { monitor, statsHandler } = require('./middleware/monitoring');
 
 const envPaths = [
   path.resolve(__dirname, '.env'),
@@ -58,6 +58,7 @@ app.get('/found-items/:itemId', requireApiKey('items:read'), rateLimitPerKey);
 app.post('/found-items/batch-lookup', requireApiKey('items:batch'), rateLimitPerKey);
 app.post('/flagged-checks', requireApiKey('checks:write'), rateLimitPerKey);
 app.get('/claims/verify', staffOrApiKey('claims:verify'), rateLimitPerKey);       
+app.get('/stats', requireApiKey(), rateLimitPerKey, statsHandler);
 app.use('/', require('./routes/apiKeys'));
 
 // Week 10: claim verification page + route (consumes the Strathbites API)

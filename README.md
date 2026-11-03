@@ -29,10 +29,10 @@ The server uses port `5000` by default. If a different port is configured throug
 
 Before running the API, make sure you have:
 
-* **Node.js and npm** installed.
-* Access to a **PostgreSQL database**.
-* A valid PostgreSQL connection string configured using the `DATABASE_URL` environment variable.
-* Git, if you want to clone the project from GitHub.
+- **Node.js and npm** installed.
+- Access to a **PostgreSQL database**.
+- A valid PostgreSQL connection string configured using the `DATABASE_URL` environment variable.
+- Git, if you want to clone the project from GitHub.
 
 ## Installation
 
@@ -40,13 +40,13 @@ Before running the API, make sure you have:
 
 2. Navigate to the server directory:
 
-   `cd my-project/server`
+    `cd my-project/server`
 
 3. Install the required dependencies:
 
-   `npm install`
+    `npm install`
 
-   ## Database Configuration
+    ## Database Configuration
 
 The API uses PostgreSQL to store found-item records.
 
@@ -55,19 +55,19 @@ Before starting the server:
 1. Make sure you have access to a PostgreSQL database.
 2. Create `my-project/server/.env` and add your connection string:
 
-   ```env
-   DATABASE_URL=postgresql://USERNAME:PASSWORD@HOST:5432/DATABASE
-   PORT=5000
-   ```
+    ```env
+    DATABASE_URL=postgresql://USERNAME:PASSWORD@HOST:5432/DATABASE
+    PORT=5000
+    ```
 
-   The server also checks `Lost_Found_System-main/.env` and the repository-root `.env`.
+    The server also checks `Lost_Found_System-main/.env` and the repository-root `.env`.
 3. Apply the schema to that database from the server directory:
 
-   ```powershell
-   psql "$env:DATABASE_URL" -f schema.sql
-   ```
+    ```powershell
+    psql "$env:DATABASE_URL" -f schema.sql
+    ```
 
-   This creates the API tables, including `flagged_checks`. The database user needs permission to create the `extensions` schema/UUID extension if it is not already installed.
+    This creates the API tables, including `flagged_checks`. The database user needs permission to create the `extensions` schema/UUID extension if it is not already installed.
 
 **Security note:** Do not commit your `.env` file or share your database credentials publicly.
 
@@ -77,11 +77,11 @@ Before starting the server:
 
 2. Navigate to the server directory:
 
-   `cd my-project/server`
+    `cd my-project/server`
 
 3. Start the server:
 
-   `npm start`
+    `npm start`
 
 If the server starts successfully, the terminal should display:
 
@@ -103,226 +103,8 @@ The healthy response is `{"status":"ok","database":"connected"}`. A `503` respon
 
 The backend is available from this computer at `http://localhost:5000`. You can send requests with a browser for GET endpoints, Postman, or `curl.exe`. For example:
 
-```powershell
 curl.exe http://localhost:5000/found-items
 curl.exe "http://localhost:5000/found-items?category=electronics&keyword=phone"
 curl.exe -X POST http://localhost:5000/found-items/batch-lookup `
   -H "Content-Type: application/json" `
   -d '{ "inventoryItemIds": ["550e8400-e29b-41d4-a716-446655440000"] }'
-```
-
-To access the API from another device on the same trusted network, use this computer's local IP address instead of `localhost` (for example, `http://192.168.1.20:5000`) and allow the port through the machine's firewall. Do not expose the unauthenticated API to the public internet.
-
-Run the automated API tests from `my-project/server`:
-
-```powershell
-npm test
-```
-
-These tests exercise the endpoint request/response behavior with a seeded database. `/health` tests the real database connection when the server is running, and an endpoint request against real records provides an end-to-end database check.
-
-## Authentication
-
-Public item browsing remains available. Account actions (claims, messaging, and staff operations) require login, while partner integration endpoints are restricted to staff or API keys according to their route.
-
-Authenticated students, security staff, and administrators can submit item claims. Staff review and approve or reject claims; a staff account cannot approve a claim submitted by that same account. Approved claims record the reviewing user's ID and name in inquiry responses. Existing databases must apply `my-project/server/migrations/004_claim_approval_audit.sql` before deploying this change.
-
-### Admin-only account creation
-
-There is no public registration. New users visit the Security Office, where an administrator creates their account from the dashboard. The app generates a temporary password for the administrator to give to the user in person. On first login, the user must choose a new password before accessing the rest of the system. No email configuration or delivery is required.
-
-For a fresh database, apply `schema.sql` and the numbered migrations through `007_admin_created_accounts.sql`. Existing databases must apply `my-project/server/migrations/007_admin_created_accounts.sql`; it adds the first-login password-change flag and removes the obsolete invitation tables. To bootstrap the first admin, configure the database connection in `my-project/server/.env`, then run `node scripts/create-first-admin.js` from `my-project/server` in an interactive terminal. The script prompts for the initial admin's details, hides the password as it is typed, and refuses to create another initial admin once one exists. After that, admins create all accounts from the dashboard.
-
-## Rate Limiting
-
-Each API key can make 60 requests per minute. Calls are counted per key, so one team hitting the limit does not affect another team.
-
-Every response to a request with a key includes:
-- `X-RateLimit-Limit`: requests allowed per minute
-- `X-RateLimit-Remaining`: requests left this minute
-
-Over the limit, the API returns `429 Too Many Requests` with a `Retry-After` header (seconds to wait):
-
-    {
-      "error": "rate_limited",
-      "message": "Too many requests for this API key. Limit is 60 per minute. Try again in 42 seconds."
-    }
-
-The limit is set in `.env` with `RATE_LIMIT_PER_MINUTE=60`.
-
-## API Endpoints
-
-### 1. List Found Items
-
-**Request**
-
-`GET /found-items`
-
-This endpoint retrieves a list of found items. You can optionally filter the results using query parameters.
-
-**Optional query parameters:**
-
-| Parameter      | Description                                                                                                                        |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `category`     | Filters items by category. Supported values include `electronics`, `personal-items`, `documents`, `clothing`, `keys`, and `other`. |
-| `keyword`      | Searches item descriptions for a matching keyword.                                                                                 |
-| `updatedSince` | Returns items updated after the specified date and time.                                                                           |
-
-**Example request**
-
-`GET http://localhost:5000/found-items?category=electronics`
-
-**Example response**
-
-```json
-[
-  {
-    "itemId": "550e8400-e29b-41d4-a716-446655440000",
-    "status": "unclaimed",
-    "location": "Library, 2nd Floor Front Desk",
-    "dateFound": "2026-10-10",
-    "description": "Black mobile phone",
-    "category": "electronics"
-  }
-]
-```
-
-Responses contain `itemId`, `status`, `location`, `dateFound`, `description`, and `category`. Automated tests verify this response shape using representative database results; verify live data with your configured database.
-
-### 2. Get a Found Item by ID
-
-**Request**
-
-`GET /found-items/{itemId}`
-
-This endpoint retrieves a specific found item using its unique ID.
-
-**Example request**
-
-`GET http://localhost:5000/found-items/550e8400-e29b-41d4-a716-446655440000`
-
-Replace the example ID with the ID of the item you want to retrieve.
-
-**Possible responses:**
-
-* **200 OK** — The item was found and returned.
-* **400 Bad Request** — The supplied item ID is not a valid UUID.
-* **404 Not Found** — No item exists with the supplied ID.
-* **500 Internal Server Error** — The server encountered a database error.
-
-### 3. Batch Lookup Found Items
-
-**Request**
-
-`POST /found-items/batch-lookup`
-
-This endpoint checks multiple inventory item IDs and returns whether each ID matches a found-item record.
-
-**Example request body**
-
-```json
-{
-  "inventoryItemIds": [
-    "550e8400-e29b-41d4-a716-446655440000",
-    "6ba7b810-9dad-41d1-80b4-00c04fd430c8"
-  ]
-}
-```
-
-Send the IDs in the request body as JSON.
-
-**Example response**
-
-```json
-{
-  "results": [
-    {
-      "inventoryItemId": "550e8400-e29b-41d4-a716-446655440000",
-      "matched": true,
-      "foundItem": {
-        "itemId": "550e8400-e29b-41d4-a716-446655440000",
-        "status": "unclaimed",
-        "location": "Library, 2nd Floor Front Desk",
-        "dateFound": "2026-10-10",
-        "description": "Black mobile phone",
-        "category": "electronics"
-      }
-    },
-    {
-      "inventoryItemId": "6ba7b810-9dad-41d1-80b4-00c04fd430c8",
-      "matched": false,
-      "foundItem": null
-    }
-  ]
-}
-```
-
-The response above is illustrative. Actual results depend on the records in the database.
-
-**Possible responses:**
-
-* **200 OK** — The lookup completed successfully.
-* **400 Bad Request** — The request body does not contain a valid array of inventory item IDs.
-* **500 Internal Server Error** — The server encountered a database error.
-
-### 4. Record a Flagged Check
-
-**Request**
-
-`POST /flagged-checks`
-
-Send `foundItemId` (an existing found-item UUID), `inventoryItemId`, `checkedBy`, and `outcome` (`match`, `no_match`, or `needs_review`) as JSON. A successful request returns `201 Created` with the persisted check record. Invalid input returns `400`; an unknown found-item ID returns `404`.
-
-**Example request**
-
-```json
-{
-  "foundItemId": "550e8400-e29b-41d4-a716-446655440000",
-  "inventoryItemId": "inv-5501",
-  "checkedBy": "team11-sync-service",
-  "outcome": "no_match"
-}
-```
-
-## Error Responses
-
-When a request fails, the API returns an HTTP status code and a JSON response describing the error.
-
-For example, if a found item does not exist, the API may return:
-
-```json
-{
-  "error": "not_found",
-  "message": "Found item not found."
-}
-```
-
-### Common HTTP Status Codes
-
-Status Code               Meaning                                                       |
-   
- 200 OK                     The request was successful.                                   |
- 400 Bad Request            The request contains invalid input.                           |
- 404 Not Found             The requested item could not be found.                        |
- 500 Internal Server Error  The server encountered an error while processing the request.
- 
- ## API Documentation
-
-The API documentation is available through a web page rendered using Redoc.
-
-To view the documentation locally:
-
-1. Open a terminal in the project root directory.
-
-2. Run the following command:
-
-   `py -m http.server 8000`
-
-3. Open your browser and visit:
-
-   `http://localhost:8000/docs/`
-
-The documentation displays the available API endpoints, request parameters, and response definitions.
-
-**Note:** This address works when the local documentation server is running. It is not a public website.
- |
