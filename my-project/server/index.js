@@ -4,6 +4,7 @@ const path = require('path');
 
 const fs = require('fs');
 const dotenv = require('dotenv');
+const { monitor } = require('./middleware/monitoring');
 
 const envPaths = [
   path.resolve(__dirname, '.env'),
@@ -22,6 +23,7 @@ const db = require('./db');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.use(monitor); // first, so rejected requests (401, 429) are logged too
 app.use(cors());
 app.use(express.json());
 

@@ -38,7 +38,6 @@ async function authenticateApiKey(req, scope) {
   }
 
   req.apiKey = apiKey;
-  console.log(`[api-key] ${apiKey.keyPrefix}... (${apiKey.name}) ${req.method} ${req.originalUrl}`);
   return { apiKey };
 }
 
