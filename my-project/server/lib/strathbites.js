@@ -2,6 +2,37 @@
 const TIMEOUT_MS = Number(process.env.PARTNER_TIMEOUT_MS) || 8000;
 const LOCATION_RE = /\bcafe-\d+\b/i; // Strathbites location IDs look like cafe-1, cafe-2 ...
 const NAIROBI_OFFSET_MS = 3 * 60 * 60 * 1000; // EAT = UTC+3, no daylight saving
+const RETRY_STATUSES = new Set([429, 500, 502, 503, 504]);
+const RETRY_DELAY_MS = 200;
+const MAX_RETRIES = 2;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchWithRetry(url, options = {}, config = {}) {
+  const { retries = MAX_RETRIES, delayMs = RETRY_DELAY_MS } = config;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: options.signal || AbortSignal.timeout(TIMEOUT_MS),
+      });
+      if (!RETRY_STATUSES.has(response.status) || attempt >= retries) {
+        return response;
+      }
+      const retryAfter = Number(response.headers.get('Retry-After'));
+      const waitMs = response.status === 429 && retryAfter > 0
+        ? Math.min(retryAfter * 1000, 5000)
+        : delayMs * 2 ** attempt;
+      log(`retrying ${url} after ${waitMs} ms (attempt ${attempt + 1}/${retries + 1}, status ${response.status})`);
+      await sleep(waitMs);
+    } catch (err) {
+      if (attempt >= retries) throw err;
+      const waitMs = delayMs * 2 ** attempt;
+      log(`retrying ${url} after ${waitMs} ms (attempt ${attempt + 1}/${retries + 1}, error ${err.name || 'Error'})`);
+      await sleep(waitMs);
+    }
+  }
+}
 
 // Read at call time (not at startup) so tests and the CLI can point it elsewhere.
 const partnerBase = () => (process.env.PARTNER_URL || '').trim().replace(/\/+$/, '');
@@ -47,7 +78,7 @@ async function callStrathbites(path) {
   log(`-> GET ${url}`);
   let response;
   try {
-    response = await fetch(url, { headers, signal: AbortSignal.timeout(TIMEOUT_MS) });
+    response = await fetchWithRetry(url, { headers }, { retries: 2, delayMs: 200 });
   } catch (err) {
     const reason = err.name === 'TimeoutError' ? `timeout after ${TIMEOUT_MS} ms`
       : (err.cause && err.cause.code) || err.message; // ECONNREFUSED / ENOTFOUND / ...
