@@ -30,7 +30,19 @@ curl -i -H "X-API-Key: <your-api-key>" http://localhost:5000/found-items
 
 A valid request returns 200. A missing or invalid key returns 401. API keys may also be rate limited and return 429 with a `Retry-After` header when the per-minute limit is exceeded. The default threshold is 60 requests per minute per API key, and the middleware exposes `X-RateLimit-Limit` and `X-RateLimit-Remaining` on successful responses.
 
-The API key setup and audit notes are documented in [API_KEYS_GUIDE.md](API_KEYS_GUIDE.md) and [SECURITY_AUDIT.md](SECURITY_AUDIT.md).
+The API key setup and audit notes are documented in [API_KEYS_GUIDE.md](API_KEYS_GUIDE.md), [SECURITY_AUDIT.md](SECURITY_AUDIT.md), and [BLIND_TEST_REPORT.md](BLIND_TEST_REPORT.md).
+
+## Blind Test Result
+
+A blind test was run using the project README and the public API flow without prior code walkthroughs.
+
+Result:
+
+- the public found-items endpoint responded successfully with valid JSON
+- a request without a key or with a wrong key was rejected with 401
+- the documentation was then updated to clarify the failure state and expected security behaviour
+
+This blind-test result is recorded in [BLIND_TEST_REPORT.md](BLIND_TEST_REPORT.md).
 
 ## Base URL
 
