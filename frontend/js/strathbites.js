@@ -28,7 +28,13 @@
     return h('section', { class: 'strathbites-call-summary', 'aria-label': 'Partner API request results' },
       h('h4', {}, 'Strathbites API requests'),
       h('ul', {}, ...calls.map((call) =>
-        h('li', {}, `${call.endpoint} — HTTP ${call.status}, ${call.ms} ms`))));
+        h('li', {}, `${call.endpoint} — HTTP ${call.status}, ${call.ms} ms${call.error ? ` — ${call.error}` : ''}`))));
+  }
+
+  function renderVerificationError(container, error) {
+    const nodes = [h('p', { class: 'error-message', role: 'alert' }, error.message || 'Partner data is unavailable right now.')];
+    if (Array.isArray(error.partnerCalls)) nodes.push(renderPartnerCalls(error.partnerCalls));
+    container.replaceChildren(...nodes);
   }
 
   function renderVerification(v) {
@@ -75,7 +81,7 @@
             h('p', { class: 'text-muted' }, `Strathbites user ${d.claimant.strathbitesUserId} · ${d.verification.locationId} · found ${d.item.dateFound}`),
             renderVerification(d.verification));
         } catch (e) {
-          out.replaceChildren(h('p', { class: 'error-message', role: 'alert' }, e.message || 'Partner data is unavailable right now.'));
+          renderVerificationError(out, e);
         }
         btn.disabled = false;
       });
@@ -107,7 +113,7 @@
       const d = await callOurApi(`/claims/verify?${q}`);
       result.replaceChildren(renderVerification(d));
     } catch (e) {
-      result.replaceChildren(h('p', { class: 'error-message', role: 'alert' }, e.message || 'Partner data is unavailable right now.'));
+      renderVerificationError(result, e);
     }
     button.disabled = false;
   });

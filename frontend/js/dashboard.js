@@ -140,12 +140,22 @@
     const form = $('postItemForm');
     const error = $('postItemError');
     const success = $('postItemSuccess');
+    const cafes = {
+      'cafe-1': 'Main Cafeteria',
+      'cafe-2': 'Business School Cafe',
+      'cafe-3': 'Student Centre Cafeteria',
+    };
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       error.hidden = true;
       success.hidden = true;
       const files = Array.from($('itemImages').files);
       if (files.length > 5) { error.textContent = 'Please choose at most 5 images.'; error.hidden = false; return; }
+      const locationId = $('itemLocationType').value;
+      const locationDetails = $('itemLocationDetails').value.trim();
+      const location = cafes[locationId]
+        ? `${locationId} (${cafes[locationId]}), ${locationDetails}`
+        : locationDetails;
       const button = form.querySelector('button[type="submit"]');
       button.disabled = true;
       try {
@@ -154,7 +164,7 @@
           json: {
             title: $('itemTitle').value,
             category: $('itemCategory').value,
-            location: $('itemLocation').value,
+            location,
             dateFound: $('itemDate').value,
             description: $('itemDescription').value,
           },

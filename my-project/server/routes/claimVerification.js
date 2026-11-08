@@ -23,6 +23,7 @@ function sendPartnerError(res, err) {
     return res.status(err.httpStatus).json({
       error: err.code,
       message: err.message,
+      ...(Array.isArray(err.partnerCalls) ? { partnerCalls: err.partnerCalls } : {}),
     });
   }
 

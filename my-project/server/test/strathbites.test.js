@@ -48,4 +48,21 @@ describe('Strathbites API requests', () => {
       })
     );
   });
+
+  it('keeps partner HTTP status and a bounded error detail for failed verification calls', async () => {
+    process.env.PARTNER_URL = 'https://partner.example';
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      json: async () => ({ error: 'Invalid API key' }),
+    });
+
+    await expect(strathbites.verifyClaimant('3', 'cafe-3')).rejects.toMatchObject({
+      httpStatus: 502,
+      partnerCalls: expect.arrayContaining([
+        expect.objectContaining({ status: 401, error: 'Invalid API key' }),
+      ]),
+    });
+  });
 });

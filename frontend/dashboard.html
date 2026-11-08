@@ -91,8 +91,17 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="itemLocation">Location Found</label>
-                            <input type="text" id="itemLocation" placeholder="e.g., Library Hall" required />
+                            <label for="itemLocationType">Location Found</label>
+                            <select id="itemLocationType" required>
+                                <option value="">Select a location</option>
+                                <option value="cafe-1">Main Cafeteria (Strathbites cafe-1)</option>
+                                <option value="cafe-2">Business School Cafe (Strathbites cafe-2)</option>
+                                <option value="cafe-3">Student Centre Cafeteria (Strathbites cafe-3)</option>
+                                <option value="other">Other campus location (not a cafeteria)</option>
+                            </select>
+                            <label for="itemLocationDetails">Location details</label>
+                            <input type="text" id="itemLocationDetails" placeholder="e.g., ground floor, near the service counter" required />
+                            <small class="form-hint">Choose the cafeteria if applicable so claim checks can match its Strathbites location.</small>
                         </div>
                         <div class="form-group">
                             <label for="itemDate">Date Found</label>

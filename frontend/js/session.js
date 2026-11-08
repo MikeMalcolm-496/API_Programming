@@ -35,7 +35,11 @@
         logout();
         throw new Error('Your session has expired. Please log in again.');
       }
-      throw new Error(payload?.message || `Request failed with status ${response.status}.`);
+      const error = new Error(payload?.message || `Request failed with status ${response.status}.`);
+      error.status = response.status;
+      error.code = payload?.error;
+      error.partnerCalls = payload?.partnerCalls;
+      throw error;
     }
     return payload;
   }

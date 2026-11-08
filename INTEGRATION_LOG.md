@@ -14,6 +14,7 @@ A claim verification feature. When someone claims a lost item, our server checks
   - `GET /orders?userId=...&fields=location`
 - All three calls are made in ONE file: `my-project/server/lib/strathbites.js` (`callStrathbites()`), and every call is printed in the server terminal as `[Strathbites] -> GET ...` / `<- 200 OK in N ms`.
 - Staff can verify a real claim: `GET /inquiries/{inquiryId}/verify` uses the claimant's linked Strathbites ID, the `cafe-N` in the item location and the date found.
+- The staff found-item form maps its cafeteria dropdown choices to `cafe-1` through `cafe-3`; non-cafeteria locations remain ordinary campus descriptions. Failed partner responses show each endpoint's HTTP status and its bounded error detail to staff.
 - Command line: `npm run strathbites -- 3 cafe-3 --date 2026-10-20` prints the three raw Strathbites responses and the verdict.
 - Partner URL lives in `.env` as `PARTNER_URL`. `PARTNER_API_KEY` is read from `.env` and sent as `X-API-Key` once the producer issues it (skipped for the online class).
 

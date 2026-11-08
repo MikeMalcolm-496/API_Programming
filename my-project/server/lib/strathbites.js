@@ -139,10 +139,16 @@ async function verifyClaimant(userId, locationId, { lostDate, includeRaw = false
     getOrders(userId, 'timestamp'),
     getOrders(userId, 'location'),
   ]);
+  const callSummary = (endpoint, result) => ({
+    endpoint,
+    status: result.status,
+    ms: result.ms,
+    ...(typeof result.body?.error === 'string' ? { error: result.body.error.slice(0, 200) } : {}),
+  });
   const calls = [
-    { endpoint: 'GET /users/{id}/order-frequency', url: freq.url, status: freq.status, ms: freq.ms },
-    { endpoint: 'GET /orders?fields=timestamp', url: times.url, status: times.status, ms: times.ms },
-    { endpoint: 'GET /orders?fields=location', url: places.url, status: places.status, ms: places.ms },
+    callSummary('GET /users/{id}/order-frequency', freq),
+    callSummary('GET /orders?fields=timestamp', times),
+    callSummary('GET /orders?fields=location', places),
   ];
 
   const missing = [freq, times, places].find((r) => r.status === 404);
