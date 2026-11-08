@@ -23,7 +23,7 @@ Until now, `POST /found-items/batch-lookup` and `POST /flagged-checks` were open
 1. **Who is calling?** Every request is tied to a named key, logged as `[api-key] lfk_live_hyoxYhq… (Team 11 sync service) POST /flagged-checks`.
 2. **What may they do?** Each key has **scopes**. A key with only `items:read` cannot write audit records.
 3. **Can we stop them?** One command revokes a key instantly, without changing anyone else's.
-4. **Can they flood us?** Each key is rate limited (120 requests per minute by default).
+4. **Can they flood us?** Each key is rate limited (60 requests per minute by default).
 
 ### Two directions, two kinds of key
 
@@ -67,7 +67,7 @@ SHA-256 (not bcrypt) is the right choice here: bcrypt is deliberately slow to pr
 
 | Scope | Allows |
 |---|---|
-| `items:read` | `GET /found-items`, `GET /found-items/{itemId}` (optional, see below) |
+| `items:read` | `GET /found-items`, `GET /found-items/{itemId}` (required) |
 | `items:batch` | `POST /found-items/batch-lookup` |
 | `checks:write` | `POST /flagged-checks` |
 | `claims:verify` | `GET /claims/verify` (Strathbites order data) |
@@ -76,20 +76,22 @@ A new key gets `items:read items:batch checks:write` unless you say otherwise. T
 
 ### Which routes need what
 
-All decided in one block in `my-project/server/index.js`:
+The integration routes in `my-project/server/index.js` require API keys. The browser UI instead uses the public read-only `/web` routes registered in `my-project/server/routes/foundItems.js`:
 
 ```js
-app.get('/found-items', optionalApiKey('items:read'));            // public UI works without a key
-app.get('/found-items/:itemId', optionalApiKey('items:read'));
-app.post('/found-items/batch-lookup', requireApiKey('items:batch'));
-app.post('/flagged-checks', requireApiKey('checks:write'));
-app.get('/claims/verify', staffOrApiKey('claims:verify'));        // personal order data: staff login or key
-app.use('/', require('./routes/apiKeys'));
+app.get('/health', requireApiKey(), rateLimitPerKey);
+app.get('/found-items', requireApiKey('items:read'), rateLimitPerKey);
+app.get('/found-items/:itemId', requireApiKey('items:read'), rateLimitPerKey);
+app.post('/found-items/batch-lookup', requireApiKey('items:batch'), rateLimitPerKey);
+app.post('/flagged-checks', requireApiKey('checks:write'), rateLimitPerKey);
+app.get('/claims/verify', staffOrApiKey('claims:verify'), rateLimitPerKey); // personal order data
 ```
 
 | Route | Rule | Reason |
 |---|---|---|
-| `GET /found-items`, `GET /found-items/{id}` | **Optional** key | The public browser UI lists items without logging in. A browser cannot keep a secret, so we must not require a key there. If a key *is* sent it must be valid (a wrong key gets 401, so partners notice mistakes) and the call is counted. |
+| `GET /health` | **Key required** | Use a valid `X-API-Key` when checking API/database readiness. |
+| `GET /found-items`, `GET /found-items/{id}` | **Key required**, scope `items:read` | Machine-to-machine integration routes. |
+| `GET /web/found-items`, `GET /web/found-items/{id}` | No API key | Read-only routes used by the browser UI; they do not expose the integration API key to the browser. |
 | `POST /found-items/batch-lookup` | **Key required**, scope `items:batch` | Machine endpoint for Team 11. |
 | `POST /flagged-checks` | **Key required**, scope `checks:write` | Writes audit records; must know who wrote them. |
 | `GET /claims/verify` | **Staff login OR key** with `claims:verify` | Exposes a person's food orders. Staff use it from the item page with their login; a partner system can use a key. |
@@ -309,7 +311,8 @@ Run the server, create a key, then:
 | any protected call with a revoked key | **401** | `"This API key has been revoked."` |
 | any protected call with an expired key | **401** | `"This API key has expired."` |
 | more than `API_KEY_RATE_LIMIT` calls in one minute | **429** | `"Too many requests..."` + `Retry-After` header |
-| `GET /found-items` with no key | **200** | unchanged, the public site still works |
+| `GET /found-items` with no key | **401** | the integration route requires an API key |
+| `GET /web/found-items` with no key | **200** when the database is available | the browser UI uses this public read-only route |
 | `GET /found-items` with a wrong key | **401** | a key that is sent must be valid |
 | `GET /claims/verify?...` with no key and no login | **401** | |
 | `GET /claims/verify?...` with a `claims:verify` key, or as logged-in staff | **200** | Strathbites verdict |
