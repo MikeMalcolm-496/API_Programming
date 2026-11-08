@@ -17,3 +17,14 @@
 11. **Strathbites check:** `npm run strathbites -- 3 cafe-3 --date 2026-10-20`
 
 Other commands: `npm run seed:reset` removes only the seeded rows, `npm run seed:sql` rebuilds `seed_data.sql`.
+
+## Local Strathbites demo
+
+To run the application against the bundled mock partner API instead of the live partner:
+
+1. Make sure your local database is configured and the schema, migrations, and seed data are loaded.
+2. From `my-project/server`, run `npm run demo`.
+3. Open `http://localhost:5000` and sign in with a seeded staff account.
+4. Verify the seeded Brian claim: user `3`, cafeteria `cafe-3`, date `2026-10-20`. The mock API has a matching order.
+
+The demo launcher starts both servers on localhost and overrides `PARTNER_URL` for that process only. It does not change `.env`, use the configured partner API key, or send requests to Strathbites. Press Ctrl+C to stop both servers. To use different ports, set `PORT` and/or `STRATHBITES_STUB_PORT` before running the command.
