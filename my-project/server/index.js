@@ -24,6 +24,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(monitor); // first, so rejected requests (401, 429) are logged too
+const deprecate = require('./middleware/deprecation');
+const v2Format = require('./middleware/v2Format');
+app.use((req, res, next) => {
+  const m = req.url.match(/^\/api\/(v1|v2)(\/.*)?$/);
+  if (!m) return next();
+  req.url = m[2] || '/';
+  if (m[1] === 'v1') deprecate(req, res, () => {}); else v2Format(req, res, () => {});
+  next();
+});
 app.use(cors());
 app.use(express.json());
 
