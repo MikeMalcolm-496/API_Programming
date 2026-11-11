@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -28,7 +29,11 @@ const deprecate = require('./middleware/deprecation');
 const v2Format = require('./middleware/v2Format');
 app.use((req, res, next) => {
   const m = req.url.match(/^\/api\/(v1|v2)(\/.*)?$/);
-  if (!m) return next();
+    if (!m) {
+    // old URL with no version: it is v1, so warn callers too
+    if (/^\/found-items(\/|\?|$)/.test(req.url)) deprecate(req, res, () => {});
+    return next();
+  }
   req.url = m[2] || '/';
   if (m[1] === 'v1') deprecate(req, res, () => {}); else v2Format(req, res, () => {});
   next();
