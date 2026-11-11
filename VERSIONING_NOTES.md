@@ -1,8 +1,8 @@
 # Versioning Notes
 
 ## The change we shipped (v2)
-- **What changed:** Responses are now `{ data, meta: { version } }` on success and `{ error: { code, message } }` on failure. v1 keeps the bare shape.
-- **Why it was worth a break:** [your reason, e.g. consistent envelope so clients can tell data from errors]
+- **What changed:** Responses are now `{ data, meta: { version: "v2" } }` on success and `{ error: { code, message }, meta: { version: "v2" } }` on failure. Error responses retain their HTTP status. v1 keeps the bare shape.
+- **Why it was worth a break:** A consistent envelope and error contract let clients distinguish successful data from errors and identify failures reliably.
 
 ## Deprecation of v1
 - **Notice sent to Team 11 on:** [date, how you sent it]
