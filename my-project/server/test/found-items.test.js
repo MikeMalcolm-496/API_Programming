@@ -1,3 +1,4 @@
+
 const { api, CATEGORIES, MISSING_UUID, expectFoundItem, expectError } = require('./helpers');
 
 describe('GET /found-items', () => {
